@@ -19,21 +19,25 @@ type WebhookServer struct {
 	token      string
 }
 
-func makeHandler[T any](processFn func(T) error) HandlerFunc {
+func makeHandler[T any](ch chan<- T) HandlerFunc {
 	return func(payload []byte) error {
 		var envelope Notification[T]
 		if err := json.Unmarshal(payload, &envelope); err != nil {
-			return fmt.Errorf("failed to unmarshal payload: %w", err)
+			return fmt.Errorf("failed to unmarshal event payload: %w", err)
 		}
-		return processFn(envelope.Payload)
+		select {
+		case ch <- envelope.Payload:
+		default:
+		}
+		return nil
 	}
 }
 
 type HandlerOption func(*WebhookServer)
 
-func WithHandler[T any](eventType string, fn func(T) error) HandlerOption {
+func WithHandler[T any](eventType string, ch chan T) HandlerOption {
 	return func(s *WebhookServer) {
-		s.registry[eventType] = makeHandler(fn)
+		s.registry[eventType] = makeHandler(ch)
 	}
 }
 
@@ -56,29 +60,43 @@ func (s *WebhookServer) processEvent(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	requestTimestamp := r.Header.Get("x-zm-request-timestamp")
-
 	requestSignature := r.Header.Get("x-zm-signature")
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
+		http.Error(w, "failed to read request body", http.StatusInternalServerError)
 		return
 	}
 
 	message := fmt.Sprintf("v0:%s:%s", requestTimestamp, string(bodyBytes))
-
 	expected := fmt.Sprintf("v0=%s", generateHMAC(message, s.token))
 
 	if !hmac.Equal([]byte(expected), []byte(requestSignature)) {
+		http.Error(w, "invalid signature", http.StatusUnauthorized)
 		return
 	}
 
 	if err = json.Unmarshal(bodyBytes, &header); err != nil {
+		http.Error(w, "failed to decode event", http.StatusBadRequest)
 		return
 	}
 
 	switch header.Event {
 	case "endpoint.url_validation":
-
+		if err = s.handleValidateToken(w, bodyBytes); err != nil {
+			http.Error(w, "failed to handle url validation", http.StatusInternalServerError)
+		}
+	default:
+		handler, ok := s.registry[header.Event]
+		if !ok {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if err = handler(bodyBytes); err != nil {
+			http.Error(w, "failed to handle event", http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
@@ -86,8 +104,20 @@ func (s *WebhookServer) Start() error {
 	return http.ListenAndServe(s.listenAddr, s.mux)
 }
 
-func (s *WebhookServer) handleValidateToken(bodyBytes []byte) error {
+func (s *WebhookServer) handleValidateToken(w http.ResponseWriter, bodyBytes []byte) error {
+	var envelope Notification[validateTokenPayload]
+	if err := json.Unmarshal(bodyBytes, &envelope); err != nil {
+		return fmt.Errorf("failed to unmarshal url validation payload: %w", err)
+	}
 
+	resp := validateTokenResponse{
+		PlainToken:     envelope.Payload.PlainToken,
+		EncryptedToken: generateHMAC(envelope.Payload.PlainToken, s.token),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	return json.NewEncoder(w).Encode(resp)
 }
 
 func generateHMAC(message, secret string) string {

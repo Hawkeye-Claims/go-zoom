@@ -14,6 +14,11 @@ type validateTokenPayload struct {
 	PlainToken string `json:"plain_token"`
 }
 
+type validateTokenResponse struct {
+	PlainToken     string `json:"plain_token"`
+	EncryptedToken string `json:"encrypted_token"`
+}
+
 type MeetingSettings struct {
 	AlternativeHosts string `json:"alternative_hosts"`
 	UsePmi           bool   `json:"use_pmi"`
