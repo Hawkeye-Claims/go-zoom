@@ -78,7 +78,22 @@ func (s *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([
 		query = options.listQueryParameters
 	}
 
-	var meetings []*models.Meeting
+	if options.meetingId != "" {
+		endpoint := fmt.Sprintf("/meetings/%s", options.meetingId)
+		meeting := &models.Meeting{}
+		res, err := s.client.request(ctx, http.MethodGet, endpoint, query, nil, meeting)
+		if err != nil {
+			return nil, res, fmt.Errorf("Error making request: %w", err)
+		}
+		return []*models.Meeting{meeting}, res, nil
+	}
+
+	var endpoint string
+	if options.userId != "" {
+		endpoint = fmt.Sprintf("/users/%s/meetings", options.userId)
+	} else {
+		return nil, nil, fmt.Errorf("Must specify either meetingId or userId")
+	}
 
 	type response struct {
 		*PaginationResponse
@@ -86,27 +101,14 @@ func (s *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([
 	}
 
 	queryResponse := &response{}
-
-	var endpoint string
-	if options.meetingId != "" {
-		endpoint = fmt.Sprintf("/meetings/%s", options.meetingId)
-	} else if options.userId != "" {
-		endpoint = fmt.Sprintf("/users/%s/meetings", options.userId)
-	} else {
-		return nil, nil, fmt.Errorf("Must specify either meetingId or userId")
-	}
+	var meetings []*models.Meeting
 
 	res, err := s.client.request(ctx, http.MethodGet, endpoint, query, nil, queryResponse)
-
 	if err != nil {
 		return nil, res, fmt.Errorf("Error making request: %w", err)
 	}
 
 	meetings = append(meetings, queryResponse.Meetings...)
-
-	if options.meetingId != "" && len(meetings) == 1 {
-		return meetings, res, nil
-	}
 
 	for {
 		if queryResponse.NextPageToken == "" {
