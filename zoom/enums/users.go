@@ -35,7 +35,7 @@ const (
 type LicenseType string
 
 const (
-	ZoomWorkforceManagment   LicenseType = "zoom_workforce_management"
+	ZoomWorkforceManagement  LicenseType = "zoom_workforce_management"
 	ZoomComplianceManagement LicenseType = "zoom_compliance_management"
 )
 
