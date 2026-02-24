@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/TheSlowpes/go-zoom/zoom/enums"
+)
 
 type Meeting struct {
 	AssistantID       string                 `json:"assistant_id"`
@@ -30,7 +34,7 @@ type Meeting struct {
 	Timezone          string                 `json:"timezone"`
 	Topic             string                 `json:"topic"`
 	TrackingFields    []MeetingTrackingField `json:"tracking_fields"`
-	Type              int                    `json:"type"`
+	Type              enums.MeetingType      `json:"type"`
 	DynamicHostKey    string                 `json:"dynamic_host_key"`
 	CreationSource    string                 `json:"creation_source"`
 }
@@ -43,14 +47,14 @@ type MeetingOccurrence struct {
 }
 
 type MeetingRecurrence struct {
-	EndDateTime    time.Time `json:"end_date_time"`
-	EndTimes       int       `json:"end_times"`
-	MonthlyDay     int       `json:"monthly_day"`
-	MonthlyWeek    int       `json:"monthly_week"`
-	MonthlyWeekDay int       `json:"monthly_week_day"`
-	RepeatInterval int       `json:"repeat_interval"`
-	Type           int       `json:"type"`
-	WeeklyDays     string    `json:"weekly_days"`
+	EndDateTime    time.Time                   `json:"end_date_time"`
+	EndTimes       int                         `json:"end_times"`
+	MonthlyDay     int                         `json:"monthly_day"`
+	MonthlyWeek    int                         `json:"monthly_week"`
+	MonthlyWeekDay int                         `json:"monthly_week_day"`
+	RepeatInterval int                         `json:"repeat_interval"`
+	Type           enums.MeetingRecurrenceType `json:"type"`
+	WeeklyDays     string                      `json:"weekly_days"`
 }
 
 type MeetingSettings struct {

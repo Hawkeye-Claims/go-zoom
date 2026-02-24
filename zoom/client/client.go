@@ -76,6 +76,12 @@ func WithToken(tokenMutex TokenMutex) ClientOption {
 	}
 }
 
+func WithRedirectURI(redirectURI string) ClientOption {
+	return func(c *Client) {
+		c.redirectURI = redirectURI
+	}
+}
+
 var _ TokenMutex = (*tokenmutex.Default)(nil)
 
 func NewClient(httpClient *http.Client, accountID, clientID, clientSecret string, opts ...ClientOption) (*Client, error) {
@@ -341,7 +347,7 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 	return authRes.AccessToken, time.Now().Add(time.Duration(expiresAt) * time.Second), nil
 }
 
-func (c *Client) RequestAuthorization(h http.Handler) http.Handler {
+func (c *Client) RequestAuthorization() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c.state = rand.Text()
 		url := c.oauthConf.AuthCodeURL(c.state)
@@ -349,7 +355,7 @@ func (c *Client) RequestAuthorization(h http.Handler) http.Handler {
 	})
 }
 
-func (c *Client) HandleOAuthCallback(h http.Handler) http.Handler {
+func (c *Client) HandleOAuthCallback() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		err := c.tokenMutex.Lock(ctx)
