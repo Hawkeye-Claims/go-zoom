@@ -57,6 +57,11 @@ func WithMeetingQueryParameters(params *MeetingQueryParameters) MeetingGetOption
 	}
 }
 
+func WithMeetingListQueryParameters(params *MeetingListQueryParameters) MeetingGetOptions {
+	return func(opts *meetingsGetOptions) {
+		opts.listQueryParameters = params
+	}
+}
 func (s *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([]*models.Meeting, *http.Response, error) {
 	options := meetingsGetOptions{}
 	for _, opt := range opts {
