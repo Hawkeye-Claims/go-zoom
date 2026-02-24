@@ -255,7 +255,7 @@ func (u *UsersService) Delete(ctx context.Context, userId string, opts ...UserDe
 	for _, opt := range opts {
 		opt(&options)
 	}
-	res, err := u.client.request(ctx, http.MethodDelete, fmt.Sprintf("/users/%s", userId), options.queryParameters, nil, nil)
+	res, err := u.client.request(ctx, http.MethodDelete, fmt.Sprintf("/users/%s", url.PathEscape(userId)), options.queryParameters, nil, nil)
 	if err != nil {
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
