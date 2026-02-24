@@ -25,17 +25,17 @@ type validateTokenResponse struct {
 }
 
 type MeetingEvent struct {
-	AccountId  string         `json:"account_id"`
+	AccountID  string         `json:"account_id"`
 	Object     models.Meeting `json:"object"`
 	Operator   string         `json:"operator,omitempty"`
-	OperatorId string         `json:"operator_id,omitempty"`
+	OperatorID string         `json:"operator_id,omitempty"`
 	Operation  string         `json:"operation,omitempty"`
 }
 
 type UserEvent struct {
-	AccountId    string                 `json:"account_id"`
+	AccountID    string                 `json:"account_id"`
 	Operator     string                 `json:"operator,omitempty"`
-	OperatorId   string                 `json:"operator_id,omitempty"`
+	OperatorID   string                 `json:"operator_id,omitempty"`
 	Object       models.User            `json:"object"`
 	CreationType enums.UserCreateAction `json:"creation_type,omitempty"`
 }
