@@ -363,6 +363,8 @@ func (c *Client) HandleOAuthCallback() http.Handler {
 			http.Error(w, "Error locking token mutex", http.StatusInternalServerError)
 			return
 		}
+		defer c.tokenMutex.Unlock(ctx)
+
 		state := r.FormValue("state")
 		if state != c.state {
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
@@ -373,23 +375,12 @@ func (c *Client) HandleOAuthCallback() http.Handler {
 		token, err := c.oauthConf.Exchange(r.Context(), code)
 		if err != nil {
 			http.Error(w, "oauthConf.Exchange() failed", http.StatusInternalServerError)
+			return
 		}
 		expiresAt := token.Expiry.Add(-5 * time.Minute)
 		err = c.tokenMutex.Set(ctx, token.AccessToken, expiresAt)
 		if err != nil {
-			err = c.tokenMutex.Unlock(ctx)
-			if err != nil {
-				http.Error(w, "Error unlocking token mutex", http.StatusInternalServerError)
-				return
-			}
-
 			http.Error(w, "Error setting token in mutex", http.StatusInternalServerError)
-			return
-		}
-
-		err = c.tokenMutex.Unlock(ctx)
-		if err != nil {
-			http.Error(w, "Error unlocking token mutex", http.StatusInternalServerError)
 			return
 		}
 	})
