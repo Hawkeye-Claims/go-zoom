@@ -144,14 +144,40 @@ func (c *Client) request(ctx context.Context, method string, path string, query 
 		}
 
 		var expiresAt time.Time
-		token, expiresAt, err = c.accessToken(ctx)
-		if err != nil {
-			err = c.tokenMutex.Unlock(ctx)
-			if err != nil {
-				return nil, fmt.Errorf("Error unlocking token mutex: %w", err)
+		var token string
+		switch c.grantType {
+		case "authorization_code":
+			refreshToken, err := c.tokenMutex.GetRefreshToken(ctx)
+			if err != nil || len(refreshToken) == 0 {
+				token, expiresAt, err = c.accessToken(ctx)
+				if err != nil {
+					err = c.tokenMutex.Unlock(ctx)
+					if err != nil {
+						return nil, fmt.Errorf("Error unlocking token mutex: %w", err)
+					}
+					return nil, fmt.Errorf("Error getting access token: %w", err)
+				}
 			}
 
-			return nil, fmt.Errorf("Error getting access token: %w", err)
+			token, expiresAt, err = c.refreshToken(ctx, refreshToken)
+			if err != nil {
+				err = c.tokenMutex.Unlock(ctx)
+				if err != nil {
+					return nil, fmt.Errorf("Error unlocking token mutex: %w", err)
+				}
+
+				return nil, fmt.Errorf("Error refreshing access token: %w", err)
+			}
+		case "account_credentials":
+			token, expiresAt, err = c.accessToken(ctx)
+			if err != nil {
+				err = c.tokenMutex.Unlock(ctx)
+				if err != nil {
+					return nil, fmt.Errorf("Error unlocking token mutex: %w", err)
+				}
+
+				return nil, fmt.Errorf("Error getting access token: %w", err)
+			}
 		}
 
 		err = c.tokenMutex.Set(ctx, token, expiresAt)
@@ -254,6 +280,39 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 	default:
 		return "", time.Time{}, fmt.Errorf("Unsupported grant type: %s", c.grantType)
 	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s?%s", zoomTokenURL, query.Encode()), nil)
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("Error creating HTTP request: %w", err)
+	}
+
+	auth := base64.URLEncoding.EncodeToString(fmt.Appendf([]byte("%s:%s"), c.clientID, c.clientSecret))
+	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", auth))
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("Error doing HTTP request: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+	}
+
+	authRes := &authResponse{}
+	err = json.NewDecoder(res.Body).Decode(authRes)
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("Error decoding response body: %w", err)
+	}
+
+	expiresAt := authRes.ExpiresIn - 300
+
+	return authRes.AccessToken, time.Now().Add(time.Duration(expiresAt) * time.Second), nil
+}
+
+func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string, time.Time, error) {
+	query := url.Values{}
+	query.Set("grant_type", "refresh_token")
+	query.Set("refresh_token", refreshToken)
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s?%s", zoomTokenURL, query.Encode()), nil)
 	if err != nil {
 		return "", time.Time{}, fmt.Errorf("Error creating HTTP request: %w", err)

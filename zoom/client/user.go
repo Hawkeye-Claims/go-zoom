@@ -14,11 +14,11 @@ type UsersServicers interface {
 	Get(ctx context.Context, opts ...UserGetOptions) ([]*models.User, *http.Response, error)
 }
 
-type UserService struct {
+type UsersService struct {
 	client *Client
 }
 
-var _ UsersServicers = (*UserService)(nil)
+var _ UsersServicers = (*UsersService)(nil)
 
 type UserGetOptions func(*usersGetOptions)
 
@@ -58,7 +58,7 @@ func WithListUserQueryParameters(params *ListUserQueryParameters) UserGetOptions
 	}
 }
 
-func (u *UserService) Get(ctx context.Context, opts ...UserGetOptions) ([]*models.User, *http.Response, error) {
+func (u *UsersService) Get(ctx context.Context, opts ...UserGetOptions) ([]*models.User, *http.Response, error) {
 	options := usersGetOptions{}
 	for _, opt := range opts {
 		opt(&options)
