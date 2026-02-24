@@ -248,7 +248,7 @@ func (c *Client) request(ctx context.Context, method string, path string, query 
 			return res, fmt.Errorf("Error decoding error response body: %w", err)
 		}
 
-		return res, fmt.Errorf("%w", err)
+		return res, fmt.Errorf("Zoom API error (status %d): %v", res.StatusCode, errRes)
 	}
 
 	if out != nil {
