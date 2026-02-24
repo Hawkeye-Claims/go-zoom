@@ -52,10 +52,6 @@ func (d *Default) GetRefreshToken(ctx context.Context) (string, error) {
 		return "", ErrTokenNotExist
 	}
 
-	if time.Now().After(d.expiresAt) {
-		return "", ErrTokenExpired
-	}
-
 	return d.refreshToken, nil
 }
 
