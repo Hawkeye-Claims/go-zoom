@@ -233,6 +233,7 @@ func (c *Client) request(ctx context.Context, method string, path string, query 
 	if err != nil {
 		return nil, fmt.Errorf("Error making HTTP request: %w", err)
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode > http.StatusIMUsed {
 		if res.StatusCode == http.StatusUnauthorized {
@@ -297,6 +298,7 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 	if err != nil {
 		return "", time.Time{}, fmt.Errorf("Error doing HTTP request: %w", err)
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
@@ -330,6 +332,7 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 	if err != nil {
 		return "", time.Time{}, fmt.Errorf("Error doing HTTP request: %w", err)
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
