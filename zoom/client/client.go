@@ -150,7 +150,6 @@ func (c *Client) request(ctx context.Context, method string, path string, query 
 		}
 
 		var expiresAt time.Time
-		var token string
 		switch c.grantType {
 		case "authorization_code":
 			refreshToken, err := c.tokenMutex.GetRefreshToken(ctx)
