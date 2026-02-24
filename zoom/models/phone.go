@@ -33,7 +33,7 @@ type CallHistory struct {
 	AnswerTime        time.Time     `json:"answer_time"`
 	EndTime           time.Time     `json:"end_time"`
 	CallPath          []CallPath    `json:"call_path"`
-	CallerAccountCode string        `json:"caller_acconut_code"`
+	CallerAccountCode string        `json:"caller_account_code"`
 	CalleeAccountCode string        `json:"callee_account_code"`
 	CallElements      []CallElement `json:"call_elements"`
 }
