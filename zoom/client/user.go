@@ -238,7 +238,7 @@ func (u *UsersService) Update(ctx context.Context, userId string, userAttributes
 	for _, opt := range opts {
 		opt(&options)
 	}
-	var user *models.User
+	user := &models.User{}
 	res, err := u.client.request(ctx, http.MethodPatch, fmt.Sprintf("/users/%s", userId), options.queryParameters, userAttributes, user)
 	if err != nil {
 		return &models.User{}, res, fmt.Errorf("Error making request: %w", err)
