@@ -163,16 +163,16 @@ func (c *Client) request(ctx context.Context, method string, path string, query 
 					}
 					return nil, fmt.Errorf("Error getting access token: %w", err)
 				}
-			}
-
-			token, expiresAt, err = c.refreshToken(ctx, refreshToken)
-			if err != nil {
-				err = c.tokenMutex.Unlock(ctx)
+			} else {
+				token, expiresAt, err = c.refreshToken(ctx, refreshToken)
 				if err != nil {
-					return nil, fmt.Errorf("Error unlocking token mutex: %w", err)
-				}
+					err = c.tokenMutex.Unlock(ctx)
+					if err != nil {
+						return nil, fmt.Errorf("Error unlocking token mutex: %w", err)
+					}
 
-				return nil, fmt.Errorf("Error refreshing access token: %w", err)
+					return nil, fmt.Errorf("Error refreshing access token: %w", err)
+				}
 			}
 		case "account_credentials":
 			token, expiresAt, err = c.accessToken(ctx)
