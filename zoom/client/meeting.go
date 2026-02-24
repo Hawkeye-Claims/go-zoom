@@ -110,16 +110,24 @@ func (s *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([
 
 	meetings = append(meetings, queryResponse.Meetings...)
 
+	type meetingListPageQuery struct {
+		*MeetingListQueryParameters
+		*PaginationOptions
+	}
+
 	for {
 		if queryResponse.NextPageToken == "" {
 			break
 		}
 
 		nextPageToken := queryResponse.NextPageToken
-		queryOption := &PaginationOptions{
-			NextPageToken: &nextPageToken,
+		pageQuery := &meetingListPageQuery{
+			MeetingListQueryParameters: options.listQueryParameters,
+			PaginationOptions: &PaginationOptions{
+				NextPageToken: &nextPageToken,
+			},
 		}
-		res, err = s.client.request(ctx, http.MethodGet, endpoint, queryOption, nil, queryResponse)
+		res, err = s.client.request(ctx, http.MethodGet, endpoint, pageQuery, nil, queryResponse)
 		if err != nil {
 			return nil, res, fmt.Errorf("Error making request: %w", err)
 		}
