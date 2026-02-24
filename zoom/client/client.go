@@ -290,7 +290,7 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 		return "", time.Time{}, fmt.Errorf("Error creating HTTP request: %w", err)
 	}
 
-	auth := base64.URLEncoding.EncodeToString(fmt.Appendf([]byte("%s:%s"), c.clientID, c.clientSecret))
+	auth := base64.URLEncoding.EncodeToString([]byte(c.clientID + ":" + c.clientSecret))
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", auth))
 
 	res, err := c.httpClient.Do(req)
@@ -323,7 +323,7 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 		return "", time.Time{}, fmt.Errorf("Error creating HTTP request: %w", err)
 	}
 
-	auth := base64.URLEncoding.EncodeToString(fmt.Appendf([]byte("%s:%s"), c.clientID, c.clientSecret))
+	auth := base64.URLEncoding.EncodeToString([]byte(c.clientID + ":" + c.clientSecret))
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", auth))
 
 	res, err := c.httpClient.Do(req)
