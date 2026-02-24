@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/TheSlowpes/go-zoom/zoom/models"
 )
@@ -84,7 +85,7 @@ func (s *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([
 	}
 
 	if options.meetingId != "" {
-		endpoint := fmt.Sprintf("/meetings/%s", options.meetingId)
+		endpoint := fmt.Sprintf("/meetings/%s", url.PathEscape(options.meetingId))
 		meeting := &models.Meeting{}
 		res, err := s.client.request(ctx, http.MethodGet, endpoint, query, nil, meeting)
 		if err != nil {
@@ -95,7 +96,7 @@ func (s *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([
 
 	var endpoint string
 	if options.userId != "" {
-		endpoint = fmt.Sprintf("/users/%s/meetings", options.userId)
+		endpoint = fmt.Sprintf("/users/%s/meetings", url.PathEscape(options.userId))
 	} else {
 		return nil, nil, fmt.Errorf("Must specify either meetingId or userId")
 	}
