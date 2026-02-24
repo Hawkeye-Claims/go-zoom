@@ -36,6 +36,20 @@ type Client struct {
 	tokenMutex   TokenMutex
 
 	baseURL string
+
+	Users *UsersService
+}
+
+type PaginationOptions struct {
+	NextPageToken *string `url:"next_page_token,omitempty"`
+	PageSize      *int    `url:"page_size,omitempty"`
+}
+
+type PaginationResponse struct {
+	NextPageToken string `json:"next_page_token"`
+	PageCount     int    `json:"page_count"`
+	PageSize      int    `json:"page_size"`
+	TotalRecords  int    `json:"total_records"`
 }
 
 type TokenMutex interface {
@@ -92,6 +106,8 @@ func NewClient(httpClient *http.Client, accountID, clientID, clientSecret string
 			TokenURL: zoomTokenURL,
 		},
 	}
+	c.Users = &UsersService{c}
+
 	return c, nil
 }
 
