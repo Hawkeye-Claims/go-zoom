@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/TheSlowpes/go-zoom/zoom/enums"
 	"github.com/TheSlowpes/go-zoom/zoom/models"
@@ -131,7 +132,7 @@ func (u *UsersService) Get(ctx context.Context, opts ...UserGetOptions) ([]*mode
 
 	endpoint := "/users/"
 	if options.userId != "" {
-		endpoint = fmt.Sprintf("/users/%s", options.userId)
+		endpoint = fmt.Sprintf("/users/%s", url.PathEscape(options.userId))
 	}
 
 	res, err := u.client.request(ctx, http.MethodGet, endpoint, query, nil, queryResponse)
@@ -239,7 +240,7 @@ func (u *UsersService) Update(ctx context.Context, userId string, userAttributes
 		opt(&options)
 	}
 	user := &models.User{}
-	res, err := u.client.request(ctx, http.MethodPatch, fmt.Sprintf("/users/%s", userId), options.queryParameters, userAttributes, user)
+	res, err := u.client.request(ctx, http.MethodPatch, fmt.Sprintf("/users/%s", url.PathEscape(userId)), options.queryParameters, userAttributes, user)
 	if err != nil {
 		return &models.User{}, res, fmt.Errorf("Error making request: %w", err)
 	}
