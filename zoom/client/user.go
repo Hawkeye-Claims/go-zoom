@@ -142,19 +142,22 @@ func (u *UsersService) Get(ctx context.Context, opts ...UserGetOptions) ([]*mode
 
 	users = append(users, queryResponse.Users...)
 
-	if options.userId != "" && len(users) == 1 {
-		return users, res, nil
+	type usersListPageQuery struct {
+		*ListUserQueryParameters
+		*PaginationOptions
 	}
-
 	for {
 		if queryResponse.NextPageToken == "" {
 			break
 		}
 		nextPageToken := queryResponse.NextPageToken
-		queryOption := &PaginationOptions{
-			NextPageToken: &nextPageToken,
+		pageQuery := &usersListPageQuery{
+			ListUserQueryParameters: options.listQueryParameters,
+			PaginationOptions: &PaginationOptions{
+				NextPageToken: &nextPageToken,
+			},
 		}
-		res, err = u.client.request(ctx, http.MethodGet, "/users/", queryOption, nil, queryResponse)
+		res, err = u.client.request(ctx, http.MethodGet, "/users/", pageQuery, nil, queryResponse)
 		if err != nil {
 			return nil, res, fmt.Errorf("Error making request: %w", err)
 		}
