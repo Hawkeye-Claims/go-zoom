@@ -39,6 +39,7 @@ type Client struct {
 
 	Users    *UsersService
 	Meetings *MeetingsService
+	Phone    *PhoneService
 }
 
 type PaginationOptions struct {
