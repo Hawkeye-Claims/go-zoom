@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type HandlerFunc func(payload []byte) error
@@ -18,6 +20,8 @@ type WebhookServer struct {
 	registry   map[string]HandlerFunc
 	token      string
 }
+
+const timestampTolerance = 5 * time.Minute
 
 func makeHandler[T any](ch chan<- T) HandlerFunc {
 	return func(payload []byte) error {
@@ -61,6 +65,23 @@ func (s *WebhookServer) processEvent(w http.ResponseWriter, r *http.Request) {
 
 	requestTimestamp := r.Header.Get("x-zm-request-timestamp")
 	requestSignature := r.Header.Get("x-zm-signature")
+
+	if requestTimestamp == "" {
+		http.Error(w, "missing request timestamp", http.StatusUnauthorized)
+		return
+	}
+
+	tsMs, err := strconv.ParseInt(requestTimestamp, 10, 64)
+	if err != nil {
+		http.Error(w, "invalid request timestamp", http.StatusUnauthorized)
+		return
+	}
+
+	age := time.Since(time.UnixMilli(tsMs))
+	if age.Abs() > timestampTolerance {
+		http.Error(w, "request timestamp outside allowed window", http.StatusUnauthorized)
+		return
+	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
