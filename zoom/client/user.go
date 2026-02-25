@@ -14,7 +14,8 @@ import (
 type UsersServicers interface {
 	Get(ctx context.Context, opts ...UserGetOptions) ([]*models.User, *http.Response, error)
 	Create(ctx context.Context, action enums.UserCreateAction, userAttributes UserAttributes) (*models.User, *http.Response, error)
-	Update(ctx context.Context, userId string, userAttributes *UserUpdateAttributes, opts ...UserPatchOptions) (*models.User, *http.Response, error)
+	Update(ctx context.Context, userId string, userAttributes *UserUpdateAttributes, opts ...UserPatchOptions) (*http.Response, error)
+	Delete(ctx context.Context, userId string, opts ...UserDeleteOptions) (*http.Response, error)
 }
 
 type UsersService struct {
@@ -243,20 +244,19 @@ type UserUpdateAttributes struct {
 	ZoomOneType      enums.ZoomOneType         `json:"zoom_one_type,omitempty"`
 }
 
-func (u *UsersService) Update(ctx context.Context, userId string, userAttributes *UserUpdateAttributes, opts ...UserPatchOptions) (*models.User, *http.Response, error) {
+func (u *UsersService) Update(ctx context.Context, userId string, userAttributes *UserUpdateAttributes, opts ...UserPatchOptions) (*http.Response, error) {
 	options := usersPatchOptions{}
 	for _, opt := range opts {
 		opt(&options)
 	}
-	user := &models.User{}
-	res, err := u.client.request(ctx, http.MethodPatch, fmt.Sprintf("/users/%s", url.PathEscape(userId)), options.queryParameters, userAttributes, user)
+	res, err := u.client.request(ctx, http.MethodPatch, fmt.Sprintf("/users/%s", url.PathEscape(userId)), options.queryParameters, userAttributes, nil)
 	if err != nil {
-		return &models.User{}, res, fmt.Errorf("Error making request: %w", err)
+		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusOK {
-		return &models.User{}, res, fmt.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
+		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
 	}
-	return user, res, nil
+	return res, nil
 }
 
 func (u *UsersService) Delete(ctx context.Context, userId string, opts ...UserDeleteOptions) (*http.Response, error) {
