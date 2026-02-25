@@ -7,8 +7,9 @@ import (
 )
 
 type Default struct {
-	token     string
-	expiresAt time.Time
+	token        string
+	refreshToken string
+	expiresAt    time.Time
 
 	lock sync.Mutex
 }
@@ -42,6 +43,20 @@ func (d *Default) Get(ctx context.Context) (string, error) {
 func (d *Default) Set(ctx context.Context, token string, expiresAt time.Time) error {
 	d.token = token
 	d.expiresAt = expiresAt
+
+	return nil
+}
+
+func (d *Default) GetRefreshToken(ctx context.Context) (string, error) {
+	if len(d.refreshToken) == 0 {
+		return "", ErrTokenNotExist
+	}
+
+	return d.refreshToken, nil
+}
+
+func (d *Default) SetRefreshToken(ctx context.Context, refreshToken string) error {
+	d.refreshToken = refreshToken
 
 	return nil
 }
