@@ -44,8 +44,8 @@ type usersDeleteOptions struct {
 }
 
 type UserPatchQueryParameters struct {
-	LoginType            enums.LoginType `json:"login_type,omitempty"`
-	RemoveTSPCredentials bool            `json:"remove_tsp_credentials,omitempty"`
+	LoginType            enums.LoginType `url:"login_type,omitempty"`
+	RemoveTSPCredentials bool            `url:"remove_tsp_credentials,omitempty"`
 }
 
 type UserQueryParameters struct {
@@ -55,17 +55,17 @@ type UserQueryParameters struct {
 }
 
 type UserDeleteQueryParameters struct {
-	EncryptedEmail     bool                   `json:"encrypted_email,omitempty"`
-	Action             enums.UserDeleteAction `json:"action,omitempty"`
-	TransferEmail      string                 `json:"transfer_email,omitempty"`
-	TransferMeeting    bool                   `json:"transfer_meeting,omitempty"`
-	TransferWebinar    bool                   `json:"transfer_webinar,omitempty"`
-	TransferRecording  bool                   `json:"transfer_recording,omitempty"`
-	TransferWhiteboard bool                   `json:"transfer_whiteboard,omitempty"`
-	TransferClipfiles  bool                   `json:"transfer_clipfiles,omitempty"`
-	TransferNotes      bool                   `json:"transfer_notes,omitempty"`
-	TransferVisitors   bool                   `json:"transfer_visitors,omitempty"`
-	TransferDocs       bool                   `json:"transfer_docs,omitempty"`
+	EncryptedEmail     bool                   `url:"encrypted_email,omitempty"`
+	Action             enums.UserDeleteAction `url:"action,omitempty"`
+	TransferEmail      string                 `url:"transfer_email,omitempty"`
+	TransferMeeting    bool                   `url:"transfer_meeting,omitempty"`
+	TransferWebinar    bool                   `url:"transfer_webinar,omitempty"`
+	TransferRecording  bool                   `url:"transfer_recording,omitempty"`
+	TransferWhiteboard bool                   `url:"transfer_whiteboard,omitempty"`
+	TransferClipfiles  bool                   `url:"transfer_clipfiles,omitempty"`
+	TransferNotes      bool                   `url:"transfer_notes,omitempty"`
+	TransferVisitors   bool                   `url:"transfer_visitors,omitempty"`
+	TransferDocs       bool                   `url:"transfer_docs,omitempty"`
 }
 
 type ListUserQueryParameters struct {
