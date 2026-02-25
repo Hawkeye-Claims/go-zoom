@@ -60,11 +60,9 @@ type LicenseOption int
 type UserType LicenseOption
 
 const (
-	Basic    UserType = 1
-	Licensed UserType = 2
-	// Unnassigned is deprecated; use Unassigned instead.
-	Unassigned  UserType = 3
-	Unnassigned UserType = Unassigned
+	Basic      UserType = 1
+	Licensed   UserType = 2
+	Unassigned UserType = 3
 )
 
 type ZoomOneType LicenseOption

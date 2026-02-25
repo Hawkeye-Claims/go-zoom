@@ -346,6 +346,12 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 
 	expiresAt := authRes.ExpiresIn - 300
 
+	if authRes.RefreshToken != "" {
+		if err = c.tokenMutex.SetRefreshToken(ctx, authRes.RefreshToken); err != nil {
+			return "", time.Time{}, fmt.Errorf("Error setting refresh token in mutex: %w", err)
+		}
+	}
+
 	return authRes.AccessToken, time.Now().Add(time.Duration(expiresAt) * time.Second), nil
 }
 
