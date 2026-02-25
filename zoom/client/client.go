@@ -37,7 +37,8 @@ type Client struct {
 
 	baseURL string
 
-	Users *UsersService
+	Users    *UsersService
+	Meetings *MeetingsService
 }
 
 type PaginationOptions struct {
@@ -113,6 +114,7 @@ func NewClient(httpClient *http.Client, accountID, clientID, clientSecret string
 		},
 	}
 	c.Users = &UsersService{c}
+	c.Meetings = &MeetingsService{c}
 
 	return c, nil
 }
