@@ -95,6 +95,7 @@ func (m *MeetingsService) GetSummary(ctx context.Context, opts ...MeetingsSummar
 		if err != nil {
 			return nil, res, fmt.Errorf("Error making request: %w", err)
 		}
+		meetingSummaries = append(meetingSummaries, queryResponse.Summaries...)
 	}
 
 	return meetingSummaries, res, nil
