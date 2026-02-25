@@ -31,7 +31,6 @@ type Client struct {
 	clientSecret string
 	grantType    string
 	redirectURI  string
-	code         string
 	oauthConf    *oauth2.Config
 	stateMap     sync.Map
 	tokenMutex   TokenMutex
@@ -279,11 +278,7 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 	query.Set("grant_type", c.grantType)
 	switch c.grantType {
 	case "authorization_code":
-		if len(c.code) == 0 {
-			return "", time.Time{}, errors.New("authorization code must be retrieved before using authorization_code grant type")
-		}
-		query.Set("code", c.code)
-		query.Set("redirect_uri", c.redirectURI)
+		return "", time.Time{}, errors.New("authorization_code grant type requires authentication via the OAuth callback handler")
 	case "account_credentials":
 
 	default:
