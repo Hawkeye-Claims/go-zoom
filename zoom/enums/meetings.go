@@ -7,6 +7,7 @@ const (
 	ScheduledMeeting            MeetingType = 2
 	RecurringMeetingNoFixedTime MeetingType = 3
 	RecurringMeetingFixedTime   MeetingType = 8
+	ShareScreenOnly             MeetingType = 10
 )
 
 type MeetingRecurrenceType int
