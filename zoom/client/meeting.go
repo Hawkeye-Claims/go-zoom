@@ -233,7 +233,7 @@ func (m *MeetingsService) Update(ctx context.Context, meetingId int, meetingAttr
 	for _, opt := range opts {
 		opt(&options)
 	}
-	res, err := m.client.request(ctx, http.MethodPatch, fmt.Sprintf("meetings/%d", meetingId), options.queryParameters, meetingAttributes, nil)
+	res, err := m.client.request(ctx, http.MethodPatch, fmt.Sprintf("/meetings/%d", meetingId), options.queryParameters, meetingAttributes, nil)
 	if err != nil {
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
