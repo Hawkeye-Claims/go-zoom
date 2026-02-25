@@ -216,3 +216,22 @@ type Resource struct {
 	ResourceID      string `json:"resource_id"`
 	PermissionLevel string `json:"permission_level"`
 }
+
+type MeetingSummary struct {
+	MeetingEndTime               time.Time `json:"meeting_end_time"`
+	MeetingHostEmail             string    `json:"meeting_host_email"`
+	MeetingHostID                string    `json:"meeting_host_id"`
+	MeetingID                    int       `json:"meeting_id"`
+	MeetingStartTime             time.Time `json:"meeting_start_time"`
+	MeetingTopic                 string    `json:"meeting_topic"`
+	MeetingUUID                  string    `json:"meeting_uuid"`
+	SummaryContent               string    `json:"summary_content,omitempty"`
+	SummaryCreatedTime           time.Time `json:"summary_created_time"`
+	SummaryDocURL                string    `json:"summary_doc_url,omitempty"`
+	SummaryEndTime               time.Time `json:"summary_end_time"`
+	SummaryLastModifiedTime      time.Time `json:"summary_last_modified_time"`
+	SummaryLastModifiedUserEmail string    `json:"summary_last_modified_user_email"`
+	SummaryLastModifiedUserID    string    `json:"summary_last_modified_user_id"`
+	SummaryStartTime             time.Time `json:"summary_start_time"`
+	SummaryTitle                 string    `json:"summary_title,omitempty"`
+}
