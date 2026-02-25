@@ -250,7 +250,7 @@ func (m *MeetingsService) Delete(ctx context.Context, meetingId int, opts ...Mee
 	}
 	res, err := m.client.request(ctx, http.MethodDelete, fmt.Sprintf("/meetings/%d", meetingId), options.queryParameters, nil, nil)
 	if err != nil {
-		return res, fmt.Errorf("Error making request: %s", err)
+		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
 		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
