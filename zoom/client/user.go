@@ -121,7 +121,15 @@ func (u *UsersService) Get(ctx context.Context, opts ...UserGetOptions) ([]*mode
 		query = options.listQueryParameters
 	}
 
-	var users []*models.User
+	if options.userId != "" {
+		endpoint := fmt.Sprintf("/users/%s", url.PathEscape(options.userId))
+		user := &models.User{}
+		res, err := u.client.request(ctx, http.MethodGet, endpoint, query, nil, user)
+		if err != nil {
+			return nil, res, fmt.Errorf("Error making request: %w", err)
+		}
+		return []*models.User{user}, res, nil
+	}
 
 	type response struct {
 		*PaginationResponse
@@ -129,11 +137,9 @@ func (u *UsersService) Get(ctx context.Context, opts ...UserGetOptions) ([]*mode
 	}
 
 	queryResponse := &response{}
+	var users []*models.User
 
 	endpoint := "/users/"
-	if options.userId != "" {
-		endpoint = fmt.Sprintf("/users/%s", url.PathEscape(options.userId))
-	}
 
 	res, err := u.client.request(ctx, http.MethodGet, endpoint, query, nil, queryResponse)
 	if err != nil {
