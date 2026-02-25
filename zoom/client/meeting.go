@@ -14,6 +14,8 @@ import (
 type MeetingsServicers interface {
 	Get(ctx context.Context, opts ...MeetingGetOptions) ([]*models.Meeting, *http.Response, error)
 	Create(ctx context.Context, userId string, meetingAttributes MeetingAttributes) (*models.Meeting, *http.Response, error)
+	Delete(ctx context.Context, meetingId int, opts ...MeetingDeleteOptions) (*http.Response, error)
+	Update(ctx context.Context, meetingId int, meetingAttributes *MeetingUpdateAttributes, opts ...MeetingUpdateOptions) (*http.Response, error)
 }
 
 type MeetingsService struct {
@@ -24,6 +26,8 @@ var _ MeetingsServicers = (*MeetingsService)(nil)
 
 type MeetingGetOptions func(*meetingsGetOptions)
 
+type MeetingUpdateOptions func(*meetingsUpdateOptions)
+
 type MeetingDeleteOptions func(*meetingsDeleteOptions)
 
 type meetingsGetOptions struct {
@@ -31,6 +35,10 @@ type meetingsGetOptions struct {
 	userId              string `url:"userId,omitempty"`
 	queryParameters     *MeetingQueryParameters
 	listQueryParameters *MeetingListQueryParameters
+}
+
+type meetingsUpdateOptions struct {
+	queryParameters *MeetingUpdateQueryParameters
 }
 
 type meetingsDeleteOptions struct {
@@ -47,6 +55,10 @@ type MeetingListQueryParameters struct {
 	From     string `url:"from,omitempty"`
 	To       string `url:"to,omitempty"`
 	Timezone string `url:"timezone,omitempty"`
+}
+
+type MeetingUpdateQueryParameters struct {
+	OccurrenceId string `url:"occurrence_id,omitempty"`
 }
 
 type MeetingDeleteQueryParameters struct {
@@ -76,6 +88,12 @@ func WithMeetingQueryParameters(params *MeetingQueryParameters) MeetingGetOption
 func WithMeetingListQueryParameters(params *MeetingListQueryParameters) MeetingGetOptions {
 	return func(opts *meetingsGetOptions) {
 		opts.listQueryParameters = params
+	}
+}
+
+func WithMeetingUpdateQueryParameters(params *MeetingUpdateQueryParameters) MeetingUpdateOptions {
+	return func(opts *meetingsUpdateOptions) {
+		opts.queryParameters = params
 	}
 }
 
@@ -173,7 +191,7 @@ type MeetingAttributes struct {
 	Recurrence      models.MeetingRecurrence      `json:"recurrence"`
 	ScheduleFor     string                        `json:"schedule_for,omitempty"`
 	Settings        models.MeetingSettings        `json:"settings"`
-	StartTime       time.Time                     `json:"start_timey"`
+	StartTime       time.Time                     `json:"start_time"`
 	TemplateID      string                        `json:"template_id,omitempty"`
 	Timezone        string                        `json:"timezone,omitempty"`
 	Topic           string                        `json:"topic,omitempty"`
@@ -192,6 +210,37 @@ func (m *MeetingsService) Create(ctx context.Context, userId string, meetingAttr
 		return &models.Meeting{}, res, fmt.Errorf("Expected status code %d, got %d", http.StatusCreated, res.StatusCode)
 	}
 	return &response, res, nil
+}
+
+type MeetingUpdateAttributes struct {
+	Agenda         string                        `json:"agenda,omitempty"`
+	Duration       int                           `json:"duration,omitempty"`
+	Password       string                        `json:"password,omitempty"`
+	PreSchedule    bool                          `json:"pre_schedule,omitempty"`
+	Recurrence     models.MeetingRecurrence      `json:"recurrence"`
+	ScheduleFor    string                        `json:"schedule_for"`
+	Settings       models.MeetingSettings        `json:"settings"`
+	StartTime      time.Time                     `json:"start_time"`
+	TemplateID     string                        `json:"template_id"`
+	Timezone       string                        `json:"timezone,omitempty"`
+	Topic          string                        `json:"topic,omitempty"`
+	TrackingFields []models.MeetingTrackingField `json:"tracking_fields"`
+	Type           enums.MeetingType             `json:"type"`
+}
+
+func (m *MeetingsService) Update(ctx context.Context, meetingId int, meetingAttributes *MeetingUpdateAttributes, opts ...MeetingUpdateOptions) (*http.Response, error) {
+	options := meetingsUpdateOptions{}
+	for _, opt := range opts {
+		opt(&options)
+	}
+	res, err := m.client.request(ctx, http.MethodPatch, fmt.Sprintf("meetings/%d", meetingId), options.queryParameters, meetingAttributes, nil)
+	if err != nil {
+		return res, fmt.Errorf("Error making request: %w", err)
+	}
+	if res.StatusCode != http.StatusNoContent {
+		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+	}
+	return res, nil
 }
 
 func (m *MeetingsService) Delete(ctx context.Context, meetingId int, opts ...MeetingDeleteOptions) (*http.Response, error) {
