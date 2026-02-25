@@ -253,8 +253,8 @@ func (u *UsersService) Update(ctx context.Context, userId string, userAttributes
 	if err != nil {
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
-	if res.StatusCode != http.StatusOK {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
+	if res.StatusCode != http.StatusNoContent {
+		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }
