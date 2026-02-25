@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/TheSlowpes/go-zoom/zoom/tokenmutex"
@@ -32,7 +33,7 @@ type Client struct {
 	redirectURI  string
 	code         string
 	oauthConf    *oauth2.Config
-	state        string
+	stateMap     sync.Map
 	tokenMutex   TokenMutex
 
 	baseURL string
@@ -365,8 +366,9 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 
 func (c *Client) RequestAuthorization() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c.state = rand.Text()
-		url := c.oauthConf.AuthCodeURL(c.state)
+		state := rand.Text()
+		c.stateMap.Store(state, struct{}{})
+		url := c.oauthConf.AuthCodeURL(state)
 		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	})
 }
@@ -382,7 +384,7 @@ func (c *Client) HandleOAuthCallback() http.Handler {
 		defer c.tokenMutex.Unlock(ctx)
 
 		state := r.FormValue("state")
-		if state != c.state {
+		if _, ok := c.stateMap.LoadAndDelete(state); !ok {
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return
 		}
