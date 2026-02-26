@@ -13,17 +13,23 @@ import (
 type PhoneService struct {
 	client      *Client
 	CallHistory *PhoneCallHistoryService
+	Settings    *PhoneSettingsService
+	Recordings  *PhoneRecordingsService
 }
 
 func NewPhoneService(client *Client) {
 	client.Phone = &PhoneService{client: client}
 	client.Phone.CallHistory = &PhoneCallHistoryService{client: client}
+	client.Phone.Settings = &PhoneSettingsService{client: client}
+	client.Phone.Recordings = &PhoneRecordingsService{client: client}
 }
 
 type PhoneCallHistoryServicer interface {
 	Get(ctx context.Context, opts ...PhoneCallHistoryGetOptions) ([]*models.CallHistory, *http.Response, error)
 	AddClientCode(callLogId, clientCode string) (*http.Response, error)
 	DeleteUserCallHistory(userId, callLogId string) (*http.Response, error)
+	GetCallElement(callElementId string) (*models.CallElement, *http.Response, error)
+	GetAICallSummary(userId, aiCallSummaryId string) (*models.AICallSummary, *http.Response, error)
 }
 
 type PhoneCallHistoryService struct {
@@ -225,4 +231,11 @@ func (p *PhoneCallHistoryService) GetCallElement(callElementId string) (*models.
 func (p *PhoneCallHistoryService) GetAICallSummary(userId, aiCallSummaryId string) (*models.AICallSummary, *http.Response, error) {
 	var aiCallSummary models.AICallSummary
 	res, err := p.client.request(context.Background(), http.MethodGet, fmt.Sprintf("/phone/user/%s/ai_call_summary/%s", url.PathEscape(userId), url.PathEscape(aiCallSummaryId)), nil, nil, &aiCallSummary)
+	if err != nil {
+		return nil, res, fmt.Errorf("Error making request: %w", err)
+	}
+	if res.StatusCode != http.StatusOK {
+		return nil, res, fmt.Errorf("Expected status code %d but got %d", http.StatusOK, res.StatusCode)
+	}
+	return &aiCallSummary, res, nil
 }

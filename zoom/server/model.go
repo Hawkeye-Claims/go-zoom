@@ -39,3 +39,24 @@ type UserEvent struct {
 	Object       models.User            `json:"object"`
 	CreationType enums.UserCreateAction `json:"creation_type,omitempty"`
 }
+
+type AICallSummaryEvent struct {
+	AccountID string               `json:"account_id"`
+	Object    models.AICallSummary `json:"object"`
+}
+
+type PhoneCallElementEvent struct {
+	AccountID string `json:"account_id"`
+	Object    struct {
+		CallElements []models.CallElement `json:"call_elements"`
+	} `json:"object"`
+	UserID string `json:"user_id"`
+}
+
+type PhoneCallHistoryEvent struct {
+	AccountID string `json:"account_id"`
+	Object    struct {
+		CallLogs []models.CallHistory `json:"call_logs"`
+	}
+	UserID string `json:"user_id"`
+}

@@ -158,15 +158,102 @@ type CallElement struct {
 
 type AICallSummary struct {
 	AICallSummaryID    string    `json:"ai_call_summary_id"`
-	AccountID          string    `json:"account_id"`
+	AccountID          string    `json:"account_id,omitempty"`
 	CallID             string    `json:"call_id"`
+	CallLogIDs         []string  `json:"call_log_ids,omitempty"`
 	UserID             string    `json:"user_id"`
-	CallSummaryRate    string    `json:"call_summary_rate"`
-	TranscriptLanguage string    `json:"transcript_language"`
-	CallSummary        string    `json:"call_summary"`
-	NextSteps          string    `json:"next_steps"`
-	DetailedSummary    string    `json:"detailed_summary"`
+	CallSummaryRate    string    `json:"call_summary_rate,omitempty"`
+	TranscriptLanguage string    `json:"transcript_language,omitempty"`
+	CallSummary        string    `json:"call_summary,omitempty"`
+	NextSteps          string    `json:"next_steps,omitempty"`
+	DetailedSummary    string    `json:"detailed_summary,omitempty"`
 	CreatedTime        time.Time `json:"created_time"`
 	ModifiedTime       time.Time `json:"modified_time"`
 	Edited             bool      `json:"edited"`
+	Deleted            bool      `json:"deleted,omitempty"`
+}
+
+type PhoneAccountSettings struct {
+	BillingAccount          BillingAccount          `json:"billing_account"`
+	BYOC                    BYOC                    `json:"byoc"`
+	Country                 Country                 `json:"country"`
+	MultiplePartyConference MultiplePartyConference `json:"multiple_party_conference"`
+	MultipleSites           MultipleSites           `json:"multiple_sites"`
+	ShowDeviceIPForCallLog  ShowDeviceIPForCallLog  `json:"show_device_ip_for_call_log"`
+}
+
+type BillingAccount struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type BYOC struct {
+	Enable bool `json:"enable"`
+}
+
+type Country struct {
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
+type MultiplePartyConference struct {
+	Enable bool `json:"enable"`
+}
+
+type MultipleSites struct {
+	Enabled  bool `json:"enabled"`
+	SiteCode bool `json:"site_code,omitempty"`
+}
+
+type ShowDeviceIPForCallLog struct {
+	Enable bool `json:"enable"`
+}
+
+type CallRecording struct {
+	AutoDeletePolicy      string         `json:"auto_delete_policy"`
+	CallID                string         `json:"call_id"`
+	CallLogID             string         `json:"call_log_id"`
+	CallElementID         string         `json:"call_element_id"`
+	CalleeName            string         `json:"callee_name"`
+	CalleeNumber          string         `json:"callee_number"`
+	CalleeNumberType      int            `json:"callee_number_type"`
+	CallerName            string         `json:"caller_name"`
+	CallerNumber          string         `json:"caller_number"`
+	CallerNumberType      int            `json:"caller_number_type"`
+	OutgoingBy            RecordingUser  `json:"outgoing_by"`
+	AcceptedBy            RecordingUser  `json:"accepted_by"`
+	DateTime              time.Time      `json:"date_time"`
+	DisclaimerStatus      int            `json:"disclaimer_status"`
+	Direction             string         `json:"direction"`
+	DownloadURL           string         `json:"download_url"`
+	Duration              int            `json:"duration"`
+	EndTime               time.Time      `json:"end_time"`
+	ID                    string         `json:"id"`
+	MeetingUUID           string         `json:"meeting_uuid"`
+	Owner                 RecordingOwner `json:"owner"`
+	RecordingType         string         `json:"recording_type"`
+	Site                  RecordingSite  `json:"site"`
+	TranscriptDownloadURL string         `json:"transcript_download_url"`
+	AutoDeleteEnable      bool           `json:"auto_delete_enable"`
+	CallerAccountCode     string         `json:"caller_account_code"`
+	CalleeAccountCode     string         `json:"callee_account_code"`
+}
+
+type RecordingUser struct {
+	Name            string `json:"name"`
+	ExtensionNumber string `json:"extension_number"`
+}
+
+type RecordingOwner struct {
+	ExtensionNumber      int       `json:"extension_number"`
+	ID                   string    `json:"id"`
+	Name                 string    `json:"name"`
+	Type                 string    `json:"type"`
+	ExtensionStatus      string    `json:"extension_status"`
+	ExtensionDeletedTime time.Time `json:"extension_deleted_time"`
+}
+
+type RecordingSite struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
