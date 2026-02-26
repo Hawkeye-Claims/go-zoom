@@ -155,3 +155,18 @@ type CallElement struct {
 	WaitingTime          int       `json:"waiting_time"`
 	VoicemailID          string    `json:"voicemail_id"`
 }
+
+type AICallSummary struct {
+	AICallSummaryID    string    `json:"ai_call_summary_id"`
+	AccountID          string    `json:"account_id"`
+	CallID             string    `json:"call_id"`
+	UserID             string    `json:"user_id"`
+	CallSummaryRate    string    `json:"call_summary_rate"`
+	TranscriptLanguage string    `json:"transcript_language"`
+	CallSummary        string    `json:"call_summary"`
+	NextSteps          string    `json:"next_steps"`
+	DetailedSummary    string    `json:"detailed_summary"`
+	CreatedTime        time.Time `json:"created_time"`
+	ModifiedTime       time.Time `json:"modified_time"`
+	Edited             bool      `json:"edited"`
+}
