@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -12,6 +13,8 @@ import (
 
 type PhoneRecordingsServicer interface {
 	Get(ctx context.Context, opts ...CallRecorddingGetOptions) ([]*models.CallRecording, *http.Response, error)
+	DownloadCallRecording(ctx context.Context, fileId string, w io.Writer) (*http.Response, error)
+	DownloadCallTranscript(ctx context.Context, recordingId string) (*models.RecordingTranscript, *http.Response, error)
 }
 
 type PhoneRecordingsService struct {
@@ -150,4 +153,31 @@ func (r *PhoneRecordingsService) Get(ctx context.Context, opts ...CallRecordding
 	}
 
 	return callRecordings, res, nil
+}
+
+func (r *PhoneRecordingsService) DownloadCallRecording(ctx context.Context, fileId string, w io.Writer) (*http.Response, error) {
+	res, err := r.client.request(ctx, http.MethodGet, fmt.Sprintf("/phone/recordings/download/%s", url.PathEscape(fileId)), nil, nil, nil)
+	if err != nil {
+		return res, fmt.Errorf("Error making request: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
+	}
+	_, err = io.Copy(w, res.Body)
+	return res, err
+}
+
+func (r *PhoneRecordingsService) DownloadCallTranscript(ctx context.Context, recordingId string) (*models.RecordingTranscript, *http.Response, error) {
+	var transcript models.RecordingTranscript
+	res, err := r.client.request(ctx, http.MethodGet, fmt.Sprintf("/phone/recording_transcript/download/%s", url.PathEscape(recordingId)), nil, nil, &transcript)
+	if err != nil {
+		return nil, res, fmt.Errorf("Error making request: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return nil, res, fmt.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
+	}
+	return &transcript, res, nil
 }
