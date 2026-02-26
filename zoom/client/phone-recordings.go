@@ -13,8 +13,11 @@ import (
 
 type PhoneRecordingsServicer interface {
 	Get(ctx context.Context, opts ...CallRecorddingGetOptions) ([]*models.CallRecording, *http.Response, error)
+	Delete(ctx context.Context, recordingId string) (*http.Response, error)
 	DownloadCallRecording(ctx context.Context, fileId string, w io.Writer) (*http.Response, error)
 	DownloadCallTranscript(ctx context.Context, recordingId string) (*models.RecordingTranscript, *http.Response, error)
+	EnableAutoDelete(recordingId string) (*http.Response, error)
+	DisableAutoDelete(recordingId string) (*http.Response, error)
 }
 
 type PhoneRecordingsService struct {
@@ -180,4 +183,60 @@ func (r *PhoneRecordingsService) DownloadCallTranscript(ctx context.Context, rec
 		return nil, res, fmt.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
 	}
 	return &transcript, res, nil
+}
+
+func (r *PhoneRecordingsService) Delete(ctx context.Context, recordingId string) (*http.Response, error) {
+	res, err := r.client.request(ctx, http.MethodDelete, fmt.Sprintf("/phone/recordings/%s", url.PathEscape(recordingId)), nil, nil, nil)
+	if err != nil {
+		return res, fmt.Errorf("Error making request: %w", err)
+	}
+	if res.StatusCode != http.StatusNoContent {
+		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+	}
+	return res, nil
+}
+
+func (r *PhoneRecordingsService) EnableAutoDelete(recordingId string) (*http.Response, error) {
+	type body struct {
+		AutoDeleteEnable bool `json:"auto_delete_enable"`
+	}
+	requestBody := &body{AutoDeleteEnable: true}
+	res, err := r.client.request(context.Background(), http.MethodPatch, fmt.Sprintf("/phone/recordings/%s", url.PathEscape(recordingId)), nil, requestBody, nil)
+	if err != nil {
+		return res, fmt.Errorf("Error making request: %w", err)
+	}
+	if res.StatusCode != http.StatusNoContent {
+		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+	}
+	return res, nil
+}
+
+func (r *PhoneRecordingsService) DisableAutoDelete(recordingId string) (*http.Response, error) {
+	type body struct {
+		AutoDeleteEnable bool `json:"auto_delete_enable"`
+	}
+	requestBody := &body{AutoDeleteEnable: false}
+	res, err := r.client.request(context.Background(), http.MethodPatch, fmt.Sprintf("/phone/recordings/%s", url.PathEscape(recordingId)), nil, requestBody, nil)
+	if err != nil {
+		return res, fmt.Errorf("Error making request: %w", err)
+	}
+	if res.StatusCode != http.StatusNoContent {
+		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+	}
+	return res, nil
+}
+
+func (r *PhoneRecordingsService) Recover(ctx context.Context, recordingId string) (*http.Response, error) {
+	type body struct {
+		Action string `json:"action"`
+	}
+	requestBody := &body{Action: "recover"}
+	res, err := r.client.request(ctx, http.MethodPost, fmt.Sprintf("/phone/recordings/%s/trash", url.PathEscape(recordingId)), nil, requestBody, nil)
+	if err != nil {
+		return res, fmt.Errorf("Error making request: %w", err)
+	}
+	if res.StatusCode != http.StatusNoContent {
+		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+	}
+	return res, nil
 }
