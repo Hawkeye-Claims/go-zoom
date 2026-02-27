@@ -15,6 +15,7 @@ type PhoneService struct {
 	CallHistory *PhoneCallHistoryService
 	Settings    *PhoneSettingsService
 	Recordings  *PhoneRecordingsService
+	Users       *PhoneUsersService
 }
 
 func NewPhoneService(client *Client) {
@@ -22,6 +23,7 @@ func NewPhoneService(client *Client) {
 	client.Phone.CallHistory = &PhoneCallHistoryService{client: client}
 	client.Phone.Settings = &PhoneSettingsService{client: client}
 	client.Phone.Recordings = &PhoneRecordingsService{client: client}
+	client.Phone.Users = &PhoneUsersService{client: client}
 }
 
 type PhoneCallHistoryServicer interface {

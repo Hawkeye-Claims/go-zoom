@@ -91,3 +91,30 @@ const (
 	Recorded    RecordingStatus = "recorded"
 	NonRecorded RecordingStatus = "non_recorded"
 )
+
+type CallForwardingType int
+
+const (
+	LowRestriction    CallForwardingType = 1 //External numbers not allowed
+	MediumRestriction CallForwardingType = 2 //External numbers and external contacts not allowed
+	HighRestriction   CallForwardingType = 3 //External numbers, external contacts and internal extension without inbound automatic call recording not allowed
+	NoRestriction     CallForwardingType = 4 //No restrictions on call forwarding
+)
+
+type CallTransferType int
+
+const (
+	NoRestrictionCallTransfer     CallTransferType = 1
+	MediumRestrictionCallTransfer CallTransferType = 2
+	HighRestrictionCallTransfer   CallTransferType = 3
+	LowRestrictionCallTransfer    CallTransferType = 4
+)
+
+type CallNotPickedUpAction int
+
+const (
+	ForwardToVoicemail CallNotPickedUpAction = 0
+	Disconnect         CallNotPickedUpAction = 9
+	ForwardToExtension CallNotPickedUpAction = 50
+	RingBackToParker   CallNotPickedUpAction = 100
+)

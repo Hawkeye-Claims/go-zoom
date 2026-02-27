@@ -60,6 +60,7 @@ type CustomAttributes struct {
 }
 
 type PhoneNumber struct {
+	ID       string                 `json:"id"`
 	Code     string                 `json:"code"`
 	Country  string                 `json:"country"`
 	Label    enums.PhoneNumberLabel `json:"label"`
