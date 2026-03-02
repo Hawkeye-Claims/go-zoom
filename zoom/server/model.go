@@ -103,7 +103,7 @@ type PhoneCallHistoryEvent struct {
 	// Object contains the list of call log entries associated with the event.
 	Object struct {
 		CallLogs []models.CallHistory `json:"call_logs"`
-	}
+	} `json:"object"`
 	// UserID is the Zoom user ID associated with the event.
 	UserID string `json:"user_id"`
 }
