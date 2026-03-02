@@ -295,7 +295,7 @@ func (u *UsersService) Create(ctx context.Context, action enums.UserCreateAction
 }
 
 // UserUpdateAttributes holds the fields that can be patched on an existing
-// Zoom user. All fields are optional; only non-zero values are sent.
+// Zoom user. All fields are optional.
 type UserUpdateAttributes struct {
 	// CMSUserID is the user's CMS user ID.
 	CMSUserID string `json:"cms_user_id,omitempty"`
@@ -326,7 +326,7 @@ type UserUpdateAttributes struct {
 	// DisplayName is the user's public display name.
 	DisplayName string `json:"display_name,omitempty"`
 	// Feature holds the user's updated feature entitlements.
-	Feature models.Feature `json:"feature"`
+	Feature *models.Feature `json:"feature,omitempty"`
 	// LicenseInfoList specifies updated licence assignments for the user.
 	LicenseInfoList []models.LicenseInfo `json:"license_info_list,omitempty"`
 	// LinkedinURL is the URL of the user's LinkedIn profile.
@@ -336,7 +336,7 @@ type UserUpdateAttributes struct {
 	// Manager is the email or user ID of the user's manager.
 	Manager string `json:"manager,omitempty"`
 	// PhoneNumbers is the list of phone numbers associated with the user.
-	PhoneNumbers []models.PhoneNumber `json:"phone_numbers"`
+	PhoneNumbers []models.PhoneNumber `json:"phone_numbers,omitempty"`
 	// PlanUnitedType specifies the updated Zoom United plan type.
 	PlanUnitedType enums.PlanUnitedType `json:"plan_united_type,omitempty"`
 	// PMI is the user's Personal Meeting ID.
