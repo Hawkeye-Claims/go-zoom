@@ -39,71 +39,87 @@ func (s *PhoneSettingsService) Get(ctx context.Context) (*models.PhoneAccountSet
 }
 
 // SettingsAttributes holds the subset of Zoom Phone account settings that can
-// be updated via the Update method.
+// be updated via the Update method. All fields are optional pointers; only
+// non-nil fields are included in the PATCH request. Fields left as nil are
+// not sent and their corresponding settings on the server remain unchanged.
 type SettingsAttributes struct {
 	// BillingAccountId is the ID of the billing account to associate with the
 	// phone account.
-	BillingAccountId string
+	BillingAccountId *string
 	// BYOC, when true, enables Bring Your Own Carrier for the account.
-	BYOC bool
+	BYOC *bool
 	// MultipleSites, when true, enables the multiple-sites feature.
-	MultipleSites bool
+	MultipleSites *bool
 	// SiteCode, when true, enables site codes for the account.
-	SiteCode bool
+	SiteCode *bool
 	// ShortExtensionLength sets the length of short extensions when site codes
 	// are enabled.
-	ShortExtensionLength int
+	ShortExtensionLength *int
 	// ShowDeviceIPForCallLog, when true, shows device IP addresses in call
 	// logs.
-	ShowDeviceIPForCallLog bool
+	ShowDeviceIPForCallLog *bool
 }
 
-// Update patches the Zoom Phone account settings with the values contained in
-// attributes. Only the fields present in SettingsAttributes are updated; all
-// other settings are left unchanged.
+// Update patches the Zoom Phone account settings with the values of any
+// non-nil fields in attributes. Only fields explicitly set on
+// SettingsAttributes are sent in the PATCH request; nil fields are omitted
+// and their corresponding settings on the server are left unchanged.
 func (s *PhoneSettingsService) Update(ctx context.Context, attributes *SettingsAttributes) (*http.Response, error) {
 	if attributes == nil {
 		return nil, fmt.Errorf("attributes cannot be nil")
 	}
+
+	type siteCodeBody struct {
+		Enable               *bool `json:"enable,omitempty"`
+		ShortExtensionLength *int  `json:"short_extension_length,omitempty"`
+	}
+	type multipleSitesBody struct {
+		Enabled  *bool         `json:"enabled,omitempty"`
+		SiteCode *siteCodeBody `json:"site_code,omitempty"`
+	}
 	type body struct {
-		BillingAccount models.BillingAccount `json:"billing_account"`
-		BYOC           models.BYOC           `json:"byoc"`
-		MultipleSites  struct {
-			Enabled  bool `json:"enabled"`
-			SiteCode struct {
-				Enable               bool `json:"enable"`
-				ShortExtensionLength int  `json:"short_extension_length,omitempty"`
-			} `json:"site_code"`
-		} `json:"multiple_sites"`
-		ShowDeviceIPForCallLog models.ShowDeviceIPForCallLog `json:"show_device_ip_for_call_log"`
+		BillingAccount *struct {
+			ID string `json:"id,omitempty"`
+		} `json:"billing_account,omitempty"`
+		BYOC *struct {
+			Enable bool `json:"enable"`
+		} `json:"byoc,omitempty"`
+		MultipleSites          *multipleSitesBody `json:"multiple_sites,omitempty"`
+		ShowDeviceIPForCallLog *struct {
+			Enable bool `json:"enable"`
+		} `json:"show_device_ip_for_call_log,omitempty"`
 	}
 
-	requestBody := &body{
-		BillingAccount: models.BillingAccount{
-			ID: attributes.BillingAccountId,
-		},
-		BYOC: models.BYOC{
-			Enable: attributes.BYOC,
-		},
-		MultipleSites: struct {
-			Enabled  bool `json:"enabled"`
-			SiteCode struct {
-				Enable               bool `json:"enable"`
-				ShortExtensionLength int  `json:"short_extension_length,omitempty"`
-			} `json:"site_code"`
-		}{
-			Enabled: attributes.MultipleSites,
-			SiteCode: struct {
-				Enable               bool `json:"enable"`
-				ShortExtensionLength int  `json:"short_extension_length,omitempty"`
-			}{
-				Enable:               attributes.SiteCode,
-				ShortExtensionLength: attributes.ShortExtensionLength,
-			},
-		},
-		ShowDeviceIPForCallLog: models.ShowDeviceIPForCallLog{
-			Enable: attributes.ShowDeviceIPForCallLog,
-		},
+	requestBody := &body{}
+
+	if attributes.BillingAccountId != nil {
+		requestBody.BillingAccount = &struct {
+			ID string `json:"id,omitempty"`
+		}{ID: *attributes.BillingAccountId}
+	}
+	if attributes.BYOC != nil {
+		requestBody.BYOC = &struct {
+			Enable bool `json:"enable"`
+		}{Enable: *attributes.BYOC}
+	}
+	if attributes.MultipleSites != nil || attributes.SiteCode != nil || attributes.ShortExtensionLength != nil {
+		ms := &multipleSitesBody{Enabled: attributes.MultipleSites}
+		if attributes.SiteCode != nil || attributes.ShortExtensionLength != nil {
+			sc := &siteCodeBody{}
+			if attributes.SiteCode != nil {
+				sc.Enable = attributes.SiteCode
+			}
+			if attributes.ShortExtensionLength != nil {
+				sc.ShortExtensionLength = attributes.ShortExtensionLength
+			}
+			ms.SiteCode = sc
+		}
+		requestBody.MultipleSites = ms
+	}
+	if attributes.ShowDeviceIPForCallLog != nil {
+		requestBody.ShowDeviceIPForCallLog = &struct {
+			Enable bool `json:"enable"`
+		}{Enable: *attributes.ShowDeviceIPForCallLog}
 	}
 
 	res, err := s.client.request(ctx, http.MethodPatch, "/phone/settings", nil, requestBody, nil)
