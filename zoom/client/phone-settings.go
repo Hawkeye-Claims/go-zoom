@@ -101,6 +101,9 @@ func (s *PhoneSettingsService) Update(ctx context.Context, attributes *SettingsA
 				ShortExtensionLength: attributes.ShortExtensionLength,
 			},
 		},
+		ShowDeviceIPForCallLog: models.ShowDeviceIPForCallLog{
+			Enable: attributes.ShowDeviceIPForCallLog,
+		},
 	}
 
 	res, err := s.client.request(ctx, http.MethodPatch, "/phone/settings", nil, requestBody, nil)
