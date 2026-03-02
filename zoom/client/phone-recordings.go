@@ -18,7 +18,7 @@ type PhoneRecordingsServicer interface {
 	// Get retrieves call recordings. Provide WithRecordingCallId to fetch
 	// recordings for a specific call, WithRecordingUserId to list recordings
 	// for a user, or no option to list all account-level recordings.
-	Get(ctx context.Context, opts ...CallRecorddingGetOptions) ([]*models.CallRecording, *http.Response, error)
+	Get(ctx context.Context, opts ...CallRecordingGetOptions) ([]*models.CallRecording, *http.Response, error)
 	// Delete permanently removes the recording identified by recordingId.
 	Delete(ctx context.Context, recordingId string) (*http.Response, error)
 	// DownloadCallRecording streams the audio file identified by fileId into
@@ -69,11 +69,9 @@ type CallRecordingQueryParameters struct {
 	GroupID string `url:"group_id,omitempty"`
 }
 
-// CallRecorddingGetOptions is a functional option for configuring a call
+// CallRecordingGetOptions is a functional option for configuring a call
 // recording Get request.
-// Note: the double 'd' in the type name reflects the existing API definition
-// and is intentional.
-type CallRecorddingGetOptions func(*callRecordingGetOptions)
+type CallRecordingGetOptions func(*callRecordingGetOptions)
 
 // callRecordingGetOptions holds the resolved configuration for a recording Get
 // call.
@@ -83,25 +81,25 @@ type callRecordingGetOptions struct {
 	queryParameters *CallRecordingQueryParameters
 }
 
-// WithRecordingUserId returns a CallRecorddingGetOptions that lists call
+// WithRecordingUserId returns a CallRecordingGetOptions that lists call
 // recordings for the user identified by userId.
-func WithRecordingUserId(userId string) CallRecorddingGetOptions {
+func WithRecordingUserId(userId string) CallRecordingGetOptions {
 	return func(opts *callRecordingGetOptions) {
 		opts.userId = userId
 	}
 }
 
-// WithRecordingCallId returns a CallRecorddingGetOptions that fetches the
+// WithRecordingCallId returns a CallRecordingGetOptions that fetches the
 // recording(s) associated with the call identified by callId.
-func WithRecordingCallId(callId string) CallRecorddingGetOptions {
+func WithRecordingCallId(callId string) CallRecordingGetOptions {
 	return func(opts *callRecordingGetOptions) {
 		opts.callId = callId
 	}
 }
 
-// WithCallRecordingQueryParameters returns a CallRecorddingGetOptions that
+// WithCallRecordingQueryParameters returns a CallRecordingGetOptions that
 // attaches the given query parameters to the recording list request.
-func WithCallRecordingQueryParameters(queryParameters *CallRecordingQueryParameters) CallRecorddingGetOptions {
+func WithCallRecordingQueryParameters(queryParameters *CallRecordingQueryParameters) CallRecordingGetOptions {
 	return func(opts *callRecordingGetOptions) {
 		opts.queryParameters = queryParameters
 	}
@@ -112,7 +110,7 @@ func WithCallRecordingQueryParameters(queryParameters *CallRecordingQueryParamet
 // WithRecordingUserId to list recordings for a user (paginated
 // automatically), or no option to list all account recordings (paginated
 // automatically). Supplying more than one option returns an error.
-func (r *PhoneRecordingsService) Get(ctx context.Context, opts ...CallRecorddingGetOptions) ([]*models.CallRecording, *http.Response, error) {
+func (r *PhoneRecordingsService) Get(ctx context.Context, opts ...CallRecordingGetOptions) ([]*models.CallRecording, *http.Response, error) {
 	options := &callRecordingGetOptions{}
 	counter := 0
 	for _, opt := range opts {
