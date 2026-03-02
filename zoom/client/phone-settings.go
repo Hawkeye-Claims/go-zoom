@@ -8,16 +8,26 @@ import (
 	"github.com/TheSlowpes/go-zoom/zoom/models"
 )
 
+// PhoneSettingsServicer is the interface implemented by PhoneSettingsService.
+// It declares the read operation for Zoom Phone account-level settings.
+// Note: the Update method exists on PhoneSettingsService but is intentionally
+// not included in this interface.
 type PhoneSettingsServicer interface {
+	// Get retrieves the current Zoom Phone account settings.
 	Get(ctx context.Context) (*models.PhoneAccountSettings, *http.Response, error)
 }
 
+// PhoneSettingsService implements PhoneSettingsServicer and provides access to
+// Zoom Phone account settings API endpoints.
 type PhoneSettingsService struct {
 	client *Client
 }
 
+// Compile-time assertion that PhoneSettingsService satisfies the
+// PhoneSettingsServicer interface.
 var _ PhoneSettingsServicer = (*PhoneSettingsService)(nil)
 
+// Get retrieves the current Zoom Phone account-level settings.
 func (s *PhoneSettingsService) Get(ctx context.Context) (*models.PhoneAccountSettings, *http.Response, error) {
 	var settings *models.PhoneAccountSettings
 	res, err := s.client.request(ctx, http.MethodGet, "/phone/settings", nil, nil, &settings)
@@ -28,15 +38,29 @@ func (s *PhoneSettingsService) Get(ctx context.Context) (*models.PhoneAccountSet
 	return settings, res, nil
 }
 
+// SettingsAttributes holds the subset of Zoom Phone account settings that can
+// be updated via the Update method.
 type SettingsAttributes struct {
-	BillingAccountId       string
-	BYOC                   bool
-	MultipleSites          bool
-	SiteCode               bool
-	ShortExtensionLength   int
+	// BillingAccountId is the ID of the billing account to associate with the
+	// phone account.
+	BillingAccountId string
+	// BYOC, when true, enables Bring Your Own Carrier for the account.
+	BYOC bool
+	// MultipleSites, when true, enables the multiple-sites feature.
+	MultipleSites bool
+	// SiteCode, when true, enables site codes for the account.
+	SiteCode bool
+	// ShortExtensionLength sets the length of short extensions when site codes
+	// are enabled.
+	ShortExtensionLength int
+	// ShowDeviceIPForCallLog, when true, shows device IP addresses in call
+	// logs.
 	ShowDeviceIPForCallLog bool
 }
 
+// Update patches the Zoom Phone account settings with the values contained in
+// attributes. Only the fields present in SettingsAttributes are updated; all
+// other settings are left unchanged.
 func (s *PhoneSettingsService) Update(ctx context.Context, attributes *SettingsAttributes) (*http.Response, error) {
 	type body struct {
 		BillingAccount models.BillingAccount `json:"billing_account"`

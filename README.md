@@ -37,13 +37,6 @@ Tokens are fetched and cached automatically. They are refreshed on expiry or whe
 Use this for user-facing apps where end users authorize your application via the Zoom OAuth flow. You must supply a redirect URI and register the two HTTP middleware handlers on your server.
 
 ```go
-import (
-    "net/http"
-    "os"
-
-    "github.com/TheSlowpes/go-zoom/zoom/client"
-)
-
 c, err := client.NewClient(
     &http.Client{},
     os.Getenv("ZOOM_ACCOUNT_ID"),
@@ -93,6 +86,158 @@ type TokenMutex interface {
 }
 ```
 
+## Services
+
+`NewClient` initializes `c.Users` and `c.Meetings` automatically. The `Phone` service tree must be initialized separately by calling `NewPhoneService`:
+
+```go
+c, err := client.NewClient(...)
+
+// Initialize Phone sub-services (CallHistory, Recordings, Settings, Users)
+client.NewPhoneService(c)
+```
+
+After calling `NewPhoneService`, the following are available: `c.Phone.CallHistory`, `c.Phone.Recordings`, `c.Phone.Settings`, and `c.Phone.Users`.
+
+### Users — `c.Users`
+
+```go
+// Get a single user
+users, _, err := c.Users.Get(ctx, client.WithUserId("me"))
+
+// List all users (auto-paginated)
+users, _, err := c.Users.Get(ctx, client.WithListUserQueryParameters(&client.ListUserQueryParameters{
+    Status: enums.ActiveUser,
+}))
+
+// Create a user
+user, _, err := c.Users.Create(ctx, enums.Create, client.UserAttributes{...})
+
+// Update a user
+_, err := c.Users.Update(ctx, "userId", &client.UserUpdateAttributes{...})
+
+// Delete a user
+_, err := c.Users.Delete(ctx, "userId")
+```
+
+### Meetings — `c.Meetings`
+
+```go
+// Get a single meeting
+meetings, _, err := c.Meetings.Get(ctx, client.WithMeetingId("meetingId"))
+
+// List meetings for a user (auto-paginated)
+meetings, _, err := c.Meetings.Get(ctx, client.WithMeetingUserId("userId"))
+
+// Create a meeting
+meeting, _, err := c.Meetings.Create(ctx, "userId", client.MeetingAttributes{...})
+
+// Update a meeting
+_, err := c.Meetings.Update(ctx, meetingId, &client.MeetingUpdateAttributes{...})
+
+// Delete a meeting
+_, err := c.Meetings.Delete(ctx, meetingId)
+```
+
+#### Meeting Summaries
+
+```go
+// Get AI-generated summaries for a meeting
+summaries, _, err := c.Meetings.GetSummary(ctx, client.WithMeetingIdForSummary("meetingId"))
+
+// Delete a meeting summary
+_, err := c.Meetings.DeleteSummary(ctx, "meetingId")
+```
+
+### Phone — `c.Phone`
+
+#### Call History — `c.Phone.CallHistory`
+
+```go
+// Get account-wide call history (auto-paginated)
+history, _, err := c.Phone.CallHistory.Get(ctx)
+
+// Get call history for a specific user (auto-paginated)
+history, _, err := c.Phone.CallHistory.Get(ctx,
+    client.WithUserIdForPhoneCallHistory("userId"),
+    client.WithPhoneCallHistoryQueryParameters(&client.PhoneCallHistoryQueryParameters{
+        From: "2024-01-01",
+        To:   "2024-01-31",
+    }),
+)
+
+// Get a single call history record by UUID
+history, _, err := c.Phone.CallHistory.Get(ctx, client.WithPhoneCallHistoryUUID("uuid"))
+
+// Get a single call element
+element, _, err := c.Phone.CallHistory.GetCallElement("callElementId")
+
+// Get an AI call summary
+summary, _, err := c.Phone.CallHistory.GetAICallSummary("userId", "aiCallSummaryId")
+
+// Add a client code to a call log entry
+_, err := c.Phone.CallHistory.AddClientCode("callLogId", "clientCode")
+
+// Delete a user's call history entry
+_, err := c.Phone.CallHistory.DeleteUserCallHistory("userId", "callLogId")
+```
+
+#### Recordings — `c.Phone.Recordings`
+
+```go
+// List call recordings for a user (auto-paginated)
+recordings, _, err := c.Phone.Recordings.Get(ctx, client.WithRecordingUserId("userId"))
+
+// Get recordings for a specific call
+recordings, _, err := c.Phone.Recordings.Get(ctx, client.WithRecordingCallId("callId"))
+
+// Download a recording to an io.Writer
+_, err := c.Phone.Recordings.DownloadCallRecording(ctx, "fileId", w)
+
+// Download a transcript
+transcript, _, err := c.Phone.Recordings.DownloadCallTranscript(ctx, "recordingId")
+
+// Enable or disable auto-delete for a recording
+_, err := c.Phone.Recordings.EnableAutoDelete("recordingId")
+_, err := c.Phone.Recordings.DisableAutoDelete("recordingId")
+
+// Recover a deleted recording
+_, err := c.Phone.Recordings.Recover(ctx, "recordingId")
+
+// Delete a recording
+_, err := c.Phone.Recordings.Delete(ctx, "recordingId")
+```
+
+#### Settings — `c.Phone.Settings`
+
+```go
+// Get account-level phone settings
+settings, _, err := c.Phone.Settings.Get(ctx)
+
+// Update account-level phone settings
+_, err := c.Phone.Settings.Update(ctx, &client.SettingsAttributes{...})
+```
+
+#### Phone Users — `c.Phone.Users`
+
+```go
+// List all phone users (auto-paginated)
+users, _, err := c.Phone.Users.Get(ctx)
+
+// Filter phone users
+users, _, err := c.Phone.Users.Get(ctx,
+    client.WithPhoneUserQueryParameters(&client.PhoneUserQueryParameters{
+        Status: enums.ActiveUser,
+    }),
+)
+
+// Get a single phone user by ID
+users, _, err := c.Phone.Users.Get(ctx, client.WithPhoneUserID("userId"))
+
+// Get a phone user's profile settings
+settings, _, err := c.Phone.Users.GetProfileSetting(ctx, "userId")
+```
+
 ## Webhook Listener
 
 Use `server.NewWebhookServer` to receive and process Zoom webhook events. All incoming requests are verified with HMAC-SHA256 against your webhook secret token before any handler is invoked. The `endpoint.url_validation` handshake required by Zoom is handled automatically.
@@ -127,12 +272,15 @@ for evt := range meetingCh {
 
 ### Built-in Payload Types
 
-Two event payload structs are provided out of the box:
+Several event payload structs are provided out of the box:
 
 | Type | Backing model | Fields |
 |------|--------------|--------|
 | `server.MeetingEvent` | `models.Meeting` | `AccountId`, `Object`, `Operator`, `OperatorId`, `Operation` |
 | `server.UserEvent` | `models.User` | `AccountId`, `Object`, `Operator`, `OperatorId`, `CreationType` |
+| `server.AICallSummaryEvent` | `models.AICallSummary` | `AccountId`, `Object` |
+| `server.PhoneCallElementEvent` | `[]models.CallElement` | `AccountId`, `Object.CallElements`, `UserID` |
+| `server.PhoneCallHistoryEvent` | `[]models.CallHistory` | `AccountId`, `Object.CallLogs`, `UserID` |
 
 ### Custom Payload Types
 
@@ -158,27 +306,6 @@ type Notification[T any] struct {
 }
 ```
 
-## Making API Requests
+## Pagination
 
-```go
-import (
-    "context"
-    "fmt"
-    "log"
-
-    "github.com/TheSlowpes/go-zoom/zoom/client"
-)
-
-ctx := context.Background()
-
-users, _, err := c.Users.Get(ctx, client.WithUserId("me"))
-if err != nil {
-    log.Fatal(err)
-}
-
-for _, u := range users {
-    fmt.Printf("ID: %s  Name: %s  Email: %s\n", u.ID, u.DisplayName, u.Email)
-}
-```
-
-Paginated endpoints are handled transparently — the client follows `next_page_token` automatically and returns the complete result set.
+Paginated endpoints follow `next_page_token` automatically and return the complete result set. No additional handling is required by the caller.

@@ -12,8 +12,16 @@ import (
 	"time"
 )
 
+// HandlerFunc is the function signature for processing a raw Zoom webhook
+// event payload. Implementations should unmarshal the JSON bytes and handle
+// the event accordingly. Returning a non-nil error causes the server to
+// respond with HTTP 500.
 type HandlerFunc func(payload []byte) error
 
+// WebhookServer is an HTTP server that receives, verifies, and dispatches
+// Zoom webhook event notifications. It validates the HMAC-SHA256 signature and
+// request timestamp on every incoming request before dispatching to the
+// registered HandlerFunc for the event type.
 type WebhookServer struct {
 	listenAddr string
 	mux        *http.ServeMux
@@ -21,8 +29,14 @@ type WebhookServer struct {
 	token      string
 }
 
+// timestampTolerance is the maximum age (or future skew) allowed for the
+// x-zm-request-timestamp header. Requests outside this window are rejected to
+// prevent replay attacks.
 const timestampTolerance = 5 * time.Minute
 
+// makeHandler returns a HandlerFunc that unmarshals the raw payload into a
+// Notification[T], extracts the typed inner payload, and sends it to ch. If
+// the channel is full the event is dropped (non-blocking send).
 func makeHandler[T any](ch chan<- T) HandlerFunc {
 	return func(payload []byte) error {
 		var envelope Notification[T]
@@ -37,14 +51,23 @@ func makeHandler[T any](ch chan<- T) HandlerFunc {
 	}
 }
 
+// HandlerOption is a functional option for configuring a WebhookServer at
+// construction time via NewWebhookServer.
 type HandlerOption func(*WebhookServer)
 
+// WithHandler returns a HandlerOption that registers ch to receive the typed
+// payload for every Zoom webhook event matching eventType. T must match the
+// payload type for the given event (e.g. MeetingEvent for "meeting.started").
 func WithHandler[T any](eventType string, ch chan T) HandlerOption {
 	return func(s *WebhookServer) {
 		s.registry[eventType] = makeHandler(ch)
 	}
 }
 
+// NewWebhookServer creates a new WebhookServer that listens on listenAddr and
+// handles webhook requests at webhookPath. secretToken is the Zoom webhook
+// secret token used for HMAC-SHA256 signature verification. Additional event
+// handlers can be registered via HandlerOption values (e.g. WithHandler).
 func NewWebhookServer(listenAddr, webhookPath, secretToken string, opts ...HandlerOption) *WebhookServer {
 	server := &WebhookServer{
 		listenAddr: listenAddr,
@@ -59,6 +82,10 @@ func NewWebhookServer(listenAddr, webhookPath, secretToken string, opts ...Handl
 	return server
 }
 
+// processEvent is the internal HTTP handler that validates incoming Zoom
+// webhook requests and dispatches them to the appropriate registered
+// HandlerFunc. It verifies the HMAC-SHA256 signature and request timestamp
+// before processing, and responds to URL validation challenges automatically.
 func (s *WebhookServer) processEvent(w http.ResponseWriter, r *http.Request) {
 	var header webhookHeader
 	defer r.Body.Close()
@@ -121,10 +148,16 @@ func (s *WebhookServer) processEvent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Start begins listening for incoming webhook requests on the configured
+// address. It blocks until the server encounters a fatal error, which it
+// returns.
 func (s *WebhookServer) Start() error {
 	return http.ListenAndServe(s.listenAddr, s.mux)
 }
 
+// handleValidateToken handles the Zoom "endpoint.url_validation" challenge by
+// computing the HMAC-SHA256 of the plain token and writing the expected JSON
+// response back to Zoom.
 func (s *WebhookServer) handleValidateToken(w http.ResponseWriter, bodyBytes []byte) error {
 	var envelope Notification[validateTokenPayload]
 	if err := json.Unmarshal(bodyBytes, &envelope); err != nil {
@@ -141,6 +174,8 @@ func (s *WebhookServer) handleValidateToken(w http.ResponseWriter, bodyBytes []b
 	return json.NewEncoder(w).Encode(resp)
 }
 
+// generateHMAC computes the HMAC-SHA256 of message using secret and returns
+// the result as a lowercase hexadecimal string.
 func generateHMAC(message, secret string) string {
 	h := hmac.New(sha256.New, []byte(secret))
 	h.Write([]byte(message))
