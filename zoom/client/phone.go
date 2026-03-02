@@ -44,15 +44,15 @@ type PhoneCallHistoryServicer interface {
 	// for a user, or no option to list account-level call history.
 	Get(ctx context.Context, opts ...PhoneCallHistoryGetOptions) ([]*models.CallHistory, *http.Response, error)
 	// AddClientCode associates a client code with a specific call log entry.
-	AddClientCode(callLogId, clientCode string) (*http.Response, error)
+	AddClientCode(ctx context.Context, callLogId, clientCode string) (*http.Response, error)
 	// DeleteUserCallHistory removes a specific call log entry from a user's
 	// history.
-	DeleteUserCallHistory(userId, callLogId string) (*http.Response, error)
+	DeleteUserCallHistory(ctx context.Context, userId, callLogId string) (*http.Response, error)
 	// GetCallElement retrieves a specific call element by its ID.
-	GetCallElement(callElementId string) (*models.CallElement, *http.Response, error)
+	GetCallElement(ctx context.Context, callElementId string) (*models.CallElement, *http.Response, error)
 	// GetAICallSummary retrieves an AI-generated call summary for the given
 	// user and summary ID.
-	GetAICallSummary(userId, aiCallSummaryId string) (*models.AICallSummary, *http.Response, error)
+	GetAICallSummary(ctx context.Context, userId, aiCallSummaryId string) (*models.AICallSummary, *http.Response, error)
 }
 
 // PhoneCallHistoryService implements PhoneCallHistoryServicer and provides
@@ -254,12 +254,12 @@ func (p *PhoneCallHistoryService) Get(ctx context.Context, opts ...PhoneCallHist
 // AddClientCode associates a client-defined code string with the call log
 // entry identified by callLogId. This is useful for tagging calls with
 // internal billing or project codes.
-func (p *PhoneCallHistoryService) AddClientCode(callLogId, clientCode string) (*http.Response, error) {
+func (p *PhoneCallHistoryService) AddClientCode(ctx context.Context, callLogId, clientCode string) (*http.Response, error) {
 	type body struct {
 		ClientCode string `json:"client_code"`
 	}
 	requestBody := &body{ClientCode: clientCode}
-	res, err := p.client.request(context.Background(), http.MethodPost, fmt.Sprintf("/phone/call_history/%s/client_code", url.PathEscape(callLogId)), nil, requestBody, nil)
+	res, err := p.client.request(ctx, http.MethodPost, fmt.Sprintf("/phone/call_history/%s/client_code", url.PathEscape(callLogId)), nil, requestBody, nil)
 	if err != nil {
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
@@ -271,8 +271,8 @@ func (p *PhoneCallHistoryService) AddClientCode(callLogId, clientCode string) (*
 
 // DeleteUserCallHistory removes the call log entry identified by callLogId
 // from the call history of the user identified by userId.
-func (p *PhoneCallHistoryService) DeleteUserCallHistory(userId, callLogId string) (*http.Response, error) {
-	res, err := p.client.request(context.Background(), http.MethodDelete, fmt.Sprintf("/phone/users/%s/call_history/%s", url.PathEscape(userId), url.PathEscape(callLogId)), nil, nil, nil)
+func (p *PhoneCallHistoryService) DeleteUserCallHistory(ctx context.Context, userId, callLogId string) (*http.Response, error) {
+	res, err := p.client.request(ctx, http.MethodDelete, fmt.Sprintf("/phone/users/%s/call_history/%s", url.PathEscape(userId), url.PathEscape(callLogId)), nil, nil, nil)
 	if err != nil {
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
@@ -284,9 +284,9 @@ func (p *PhoneCallHistoryService) DeleteUserCallHistory(userId, callLogId string
 
 // GetCallElement retrieves the call element record identified by
 // callElementId.
-func (p *PhoneCallHistoryService) GetCallElement(callElementId string) (*models.CallElement, *http.Response, error) {
+func (p *PhoneCallHistoryService) GetCallElement(ctx context.Context, callElementId string) (*models.CallElement, *http.Response, error) {
 	var callElement models.CallElement
-	res, err := p.client.request(context.Background(), http.MethodGet, fmt.Sprintf("/phone/call_elements/%s", url.PathEscape(callElementId)), nil, nil, &callElement)
+	res, err := p.client.request(ctx, http.MethodGet, fmt.Sprintf("/phone/call_elements/%s", url.PathEscape(callElementId)), nil, nil, &callElement)
 	if err != nil {
 		return nil, res, fmt.Errorf("Error making request: %w", err)
 	}
@@ -298,9 +298,9 @@ func (p *PhoneCallHistoryService) GetCallElement(callElementId string) (*models.
 
 // GetAICallSummary retrieves the AI-generated call summary identified by
 // aiCallSummaryId for the user identified by userId.
-func (p *PhoneCallHistoryService) GetAICallSummary(userId, aiCallSummaryId string) (*models.AICallSummary, *http.Response, error) {
+func (p *PhoneCallHistoryService) GetAICallSummary(ctx context.Context, userId, aiCallSummaryId string) (*models.AICallSummary, *http.Response, error) {
 	var aiCallSummary models.AICallSummary
-	res, err := p.client.request(context.Background(), http.MethodGet, fmt.Sprintf("/phone/user/%s/ai_call_summary/%s", url.PathEscape(userId), url.PathEscape(aiCallSummaryId)), nil, nil, &aiCallSummary)
+	res, err := p.client.request(ctx, http.MethodGet, fmt.Sprintf("/phone/user/%s/ai_call_summary/%s", url.PathEscape(userId), url.PathEscape(aiCallSummaryId)), nil, nil, &aiCallSummary)
 	if err != nil {
 		return nil, res, fmt.Errorf("Error making request: %w", err)
 	}
