@@ -62,6 +62,9 @@ type SettingsAttributes struct {
 // attributes. Only the fields present in SettingsAttributes are updated; all
 // other settings are left unchanged.
 func (s *PhoneSettingsService) Update(ctx context.Context, attributes *SettingsAttributes) (*http.Response, error) {
+	if attributes == nil {
+		return nil, fmt.Errorf("attributes cannot be nil")
+	}
 	type body struct {
 		BillingAccount models.BillingAccount `json:"billing_account"`
 		BYOC           models.BYOC           `json:"byoc"`
