@@ -29,10 +29,10 @@ type PhoneRecordingsServicer interface {
 	DownloadCallTranscript(ctx context.Context, recordingId string) (*models.RecordingTranscript, *http.Response, error)
 	// EnableAutoDelete enables automatic deletion for the recording identified
 	// by recordingId.
-	EnableAutoDelete(recordingId string) (*http.Response, error)
+	EnableAutoDelete(ctx context.Context, recordingId string) (*http.Response, error)
 	// DisableAutoDelete disables automatic deletion for the recording
 	// identified by recordingId.
-	DisableAutoDelete(recordingId string) (*http.Response, error)
+	DisableAutoDelete(ctx context.Context, recordingId string) (*http.Response, error)
 	// Recover restores the recording identified by recordingId from the trash.
 	Recover(ctx context.Context, recordingId string) (*http.Response, error)
 }
@@ -251,12 +251,12 @@ func (r *PhoneRecordingsService) Delete(ctx context.Context, recordingId string)
 
 // EnableAutoDelete sets the auto-delete flag to true on the recording
 // identified by recordingId, scheduling it for automatic removal.
-func (r *PhoneRecordingsService) EnableAutoDelete(recordingId string) (*http.Response, error) {
+func (r *PhoneRecordingsService) EnableAutoDelete(ctx context.Context, recordingId string) (*http.Response, error) {
 	type body struct {
 		AutoDeleteEnable bool `json:"auto_delete_enable"`
 	}
 	requestBody := &body{AutoDeleteEnable: true}
-	res, err := r.client.request(context.Background(), http.MethodPatch, fmt.Sprintf("/phone/recordings/%s", url.PathEscape(recordingId)), nil, requestBody, nil)
+	res, err := r.client.request(ctx, http.MethodPatch, fmt.Sprintf("/phone/recordings/%s", url.PathEscape(recordingId)), nil, requestBody, nil)
 	if err != nil {
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
@@ -268,12 +268,12 @@ func (r *PhoneRecordingsService) EnableAutoDelete(recordingId string) (*http.Res
 
 // DisableAutoDelete sets the auto-delete flag to false on the recording
 // identified by recordingId, preventing it from being automatically removed.
-func (r *PhoneRecordingsService) DisableAutoDelete(recordingId string) (*http.Response, error) {
+func (r *PhoneRecordingsService) DisableAutoDelete(ctx context.Context, recordingId string) (*http.Response, error) {
 	type body struct {
 		AutoDeleteEnable bool `json:"auto_delete_enable"`
 	}
 	requestBody := &body{AutoDeleteEnable: false}
-	res, err := r.client.request(context.Background(), http.MethodPatch, fmt.Sprintf("/phone/recordings/%s", url.PathEscape(recordingId)), nil, requestBody, nil)
+	res, err := r.client.request(ctx, http.MethodPatch, fmt.Sprintf("/phone/recordings/%s", url.PathEscape(recordingId)), nil, requestBody, nil)
 	if err != nil {
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
