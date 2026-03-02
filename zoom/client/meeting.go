@@ -298,7 +298,7 @@ func (m *MeetingsService) Create(ctx context.Context, userId string, meetingAttr
 }
 
 // MeetingUpdateAttributes holds the fields that can be patched on an existing
-// Zoom meeting. All fields are optional; only non-zero values are sent.
+// Zoom meeting. Fields correspond to properties that can be updated on a meeting.
 type MeetingUpdateAttributes struct {
 	// Agenda is the updated meeting description or agenda.
 	Agenda string `json:"agenda,omitempty"`
