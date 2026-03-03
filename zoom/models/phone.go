@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/TheSlowpes/go-zoom/zoom/enums"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/enums"
 )
 
 // CallHistory represents a single call log record as returned by the Zoom Phone

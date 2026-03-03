@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/TheSlowpes/go-zoom/zoom/models"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/models"
 )
 
 // PhoneRecordingsServicer is the interface implemented by

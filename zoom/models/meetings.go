@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/TheSlowpes/go-zoom/zoom/enums"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/enums"
 )
 
 // Meeting represents a Zoom meeting as returned by the Meetings API.

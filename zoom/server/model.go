@@ -5,8 +5,8 @@
 package server
 
 import (
-	"github.com/TheSlowpes/go-zoom/zoom/enums"
-	"github.com/TheSlowpes/go-zoom/zoom/models"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/enums"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/models"
 )
 
 // Notification is a generic wrapper for all Zoom webhook event payloads. T is

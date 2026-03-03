@@ -5,7 +5,7 @@ A lightweight [Zoom API](https://marketplace.zoom.us/docs/api-reference/introduc
 ## Installation
 
 ```sh
-go get github.com/TheSlowpes/go-zoom
+go get github.com/Hawkeye-Claims/go-zoom
 ```
 
 ## Client Setup
@@ -19,7 +19,7 @@ import (
     "net/http"
     "os"
 
-    "github.com/TheSlowpes/go-zoom/zoom/client"
+    "github.com/Hawkeye-Claims/go-zoom/zoom/client"
 )
 
 c, err := client.NewClient(
@@ -247,7 +247,7 @@ import (
     "fmt"
     "os"
 
-    "github.com/TheSlowpes/go-zoom/zoom/server"
+    "github.com/Hawkeye-Claims/go-zoom/zoom/server"
 )
 
 meetingCh := make(chan server.MeetingEvent, 10)

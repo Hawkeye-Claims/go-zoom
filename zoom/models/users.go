@@ -6,7 +6,7 @@ package models
 import (
 	"time"
 
-	"github.com/TheSlowpes/go-zoom/zoom/enums"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/enums"
 )
 
 // User represents a Zoom user account as returned by the Users API.

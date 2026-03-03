@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/TheSlowpes/go-zoom/zoom/models"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/models"
 )
 
 // PhoneSettingsServicer is the interface implemented by PhoneSettingsService.
