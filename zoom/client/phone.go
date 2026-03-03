@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/TheSlowpes/go-zoom/zoom/enums"
-	"github.com/TheSlowpes/go-zoom/zoom/models"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/enums"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/models"
 )
 
 // PhoneService groups all Zoom Phone sub-services under a single struct

@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TheSlowpes/go-zoom/zoom/tokenmutex"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/tokenmutex"
 	querystring "github.com/google/go-querystring/query"
 	"golang.org/x/oauth2"
 )

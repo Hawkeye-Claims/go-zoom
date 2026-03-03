@@ -1,4 +1,4 @@
-module github.com/TheSlowpes/go-zoom
+module github.com/Hawkeye-Claims/go-zoom
 
 go 1.24.4
 

@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/TheSlowpes/go-zoom/zoom/enums"
-	"github.com/TheSlowpes/go-zoom/zoom/models"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/enums"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/models"
 )
 
 // MeetingsServicers is the interface implemented by MeetingsService. It

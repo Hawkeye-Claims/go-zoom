@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/TheSlowpes/go-zoom/zoom/enums"
-	"github.com/TheSlowpes/go-zoom/zoom/models"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/enums"
+	"github.com/Hawkeye-Claims/go-zoom/zoom/models"
 )
 
 // PhoneUsersServicer is the interface implemented by PhoneUsersService. It
