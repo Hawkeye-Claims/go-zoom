@@ -98,13 +98,18 @@ func (s *WebhookServer) processEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tsMs, err := strconv.ParseInt(requestTimestamp, 10, 64)
+	ts, err := strconv.ParseInt(requestTimestamp, 10, 64)
 	if err != nil {
 		http.Error(w, "invalid request timestamp", http.StatusUnauthorized)
 		return
 	}
 
-	age := time.Since(time.UnixMilli(tsMs))
+	requestTime := time.Unix(ts, 0)
+	if len(requestTimestamp) >= 13 {
+		requestTime = time.UnixMilli(ts)
+	}
+
+	age := time.Since(requestTime)
 	if age.Abs() > timestampTolerance {
 		http.Error(w, "request timestamp outside allowed window", http.StatusUnauthorized)
 		return

@@ -30,14 +30,14 @@ type webhookHeader struct {
 // validateTokenPayload is the payload received in an
 // "endpoint.url_validation" event from Zoom.
 type validateTokenPayload struct {
-	PlainToken string `json:"plain_token"`
+	PlainToken string `json:"plainToken"`
 }
 
 // validateTokenResponse is the response body sent back to Zoom in reply to
 // an "endpoint.url_validation" challenge.
 type validateTokenResponse struct {
-	PlainToken     string `json:"plain_token"`
-	EncryptedToken string `json:"encrypted_token"`
+	PlainToken     string `json:"plainToken"`
+	EncryptedToken string `json:"encryptedToken"`
 }
 
 // MeetingEvent is the payload type for meeting-related Zoom webhook events
