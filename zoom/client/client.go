@@ -228,32 +228,44 @@ func (c *Client) request(ctx context.Context, method string, path string, query 
 			if err != nil || len(refreshToken) == 0 {
 				token, expiresAt, err = c.accessToken(ctx)
 				if err != nil {
-					err = c.tokenMutex.Unlock(ctx)
-					if err != nil {
-						return nil, fmt.Errorf("Error unlocking token mutex: %w", err)
+					tokenErr := err
+					unlockErr := c.tokenMutex.Unlock(ctx)
+					if unlockErr != nil {
+						return nil, errors.Join(
+							fmt.Errorf("Error getting access token: %w", tokenErr),
+							fmt.Errorf("Error unlocking token mutex: %w", unlockErr),
+						)
 					}
-					return nil, fmt.Errorf("Error getting access token: %w", err)
+					return nil, fmt.Errorf("Error getting access token: %w", tokenErr)
 				}
 			} else {
 				token, expiresAt, err = c.refreshToken(ctx, refreshToken)
 				if err != nil {
-					err = c.tokenMutex.Unlock(ctx)
-					if err != nil {
-						return nil, fmt.Errorf("Error unlocking token mutex: %w", err)
+					refreshErr := err
+					unlockErr := c.tokenMutex.Unlock(ctx)
+					if unlockErr != nil {
+						return nil, errors.Join(
+							fmt.Errorf("Error refreshing access token: %w", refreshErr),
+							fmt.Errorf("Error unlocking token mutex: %w", unlockErr),
+						)
 					}
 
-					return nil, fmt.Errorf("Error refreshing access token: %w", err)
+					return nil, fmt.Errorf("Error refreshing access token: %w", refreshErr)
 				}
 			}
 		case "account_credentials":
 			token, expiresAt, err = c.accessToken(ctx)
 			if err != nil {
-				err = c.tokenMutex.Unlock(ctx)
-				if err != nil {
-					return nil, fmt.Errorf("Error unlocking token mutex: %w", err)
+				tokenErr := err
+				unlockErr := c.tokenMutex.Unlock(ctx)
+				if unlockErr != nil {
+					return nil, errors.Join(
+						fmt.Errorf("Error getting access token: %w", tokenErr),
+						fmt.Errorf("Error unlocking token mutex: %w", unlockErr),
+					)
 				}
 
-				return nil, fmt.Errorf("Error getting access token: %w", err)
+				return nil, fmt.Errorf("Error getting access token: %w", tokenErr)
 			}
 		}
 
@@ -367,7 +379,7 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 		return "", time.Time{}, fmt.Errorf("Error creating HTTP request: %w", err)
 	}
 
-	auth := base64.URLEncoding.EncodeToString([]byte(c.clientID + ":" + c.clientSecret))
+	auth := base64.StdEncoding.EncodeToString([]byte(c.clientID + ":" + c.clientSecret))
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", auth))
 
 	res, err := c.httpClient.Do(req)
@@ -377,7 +389,34 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+		errRes := &struct {
+			Error            string `json:"error"`
+			ErrorDescription string `json:"error_description"`
+			Reason           string `json:"reason"`
+			Message          string `json:"message"`
+		}{}
+
+		err = json.NewDecoder(res.Body).Decode(errRes)
+		if err != nil {
+			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+		}
+
+		msg := errRes.ErrorDescription
+		if msg == "" {
+			msg = errRes.Message
+		}
+		if msg == "" {
+			msg = errRes.Reason
+		}
+		if msg == "" {
+			msg = errRes.Error
+		}
+
+		if msg == "" {
+			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+		}
+
+		return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d: %s", res.StatusCode, msg)
 	}
 
 	authRes := &authResponse{}
@@ -411,7 +450,7 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 		return "", time.Time{}, fmt.Errorf("Error creating HTTP request: %w", err)
 	}
 
-	auth := base64.URLEncoding.EncodeToString([]byte(c.clientID + ":" + c.clientSecret))
+	auth := base64.StdEncoding.EncodeToString([]byte(c.clientID + ":" + c.clientSecret))
 	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", auth))
 
 	res, err := c.httpClient.Do(req)
@@ -421,7 +460,34 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+		errRes := &struct {
+			Error            string `json:"error"`
+			ErrorDescription string `json:"error_description"`
+			Reason           string `json:"reason"`
+			Message          string `json:"message"`
+		}{}
+
+		err = json.NewDecoder(res.Body).Decode(errRes)
+		if err != nil {
+			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+		}
+
+		msg := errRes.ErrorDescription
+		if msg == "" {
+			msg = errRes.Message
+		}
+		if msg == "" {
+			msg = errRes.Reason
+		}
+		if msg == "" {
+			msg = errRes.Error
+		}
+
+		if msg == "" {
+			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+		}
+
+		return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d: %s", res.StatusCode, msg)
 	}
 
 	authRes := &authResponse{}

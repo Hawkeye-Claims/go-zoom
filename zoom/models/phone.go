@@ -12,7 +12,7 @@ type CallHistory struct {
 	// ID is the unique identifier for the call log entry.
 	ID string `json:"id,omitempty"`
 	// CallHistoryUUID is the UUID of the call history record.
-	CallHistoryUUID string `json:"call_history_uuid,omitempty"`
+	CallHistoryUUID string `json:"call_path_id,omitempty"`
 	// CallID is the unique identifier for the call.
 	CallID string `json:"call_id,omitempty"`
 	// ConnectType indicates whether the call was internal or external.
