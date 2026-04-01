@@ -520,9 +520,9 @@ type TranscriptTimeline struct {
 	// RawText is the unprocessed text of the spoken segment.
 	RawText string `json:"raw_text,omitempty"`
 	// TS is the start timestamp of this segment.
-	TS time.Time `json:"ts"`
+	TS string `json:"ts"`
 	// EndTS is the end timestamp of this segment.
-	EndTS time.Time `json:"end_ts"`
+	EndTS string `json:"end_ts"`
 	// Users lists the speakers in this segment.
 	Users []TranscriptUser `json:"users"`
 	// UserID is the primary speaker's user ID.
