@@ -530,7 +530,7 @@ type TranscriptTimeline struct {
 	// UserIDs lists all speaker user IDs in this segment.
 	UserIDs []string `json:"userIds"`
 	// ChannelMark identifies the audio channel for this segment.
-	ChannelMark int `json:"channelMark"`
+	ChannelMark string `json:"channelMark"`
 }
 
 // TranscriptUser represents a speaker within a transcript timeline segment.
@@ -551,7 +551,7 @@ type TranscriptUser struct {
 	// EmailAddress is the email address of the speaker.
 	EmailAddress string `json:"email_address,omitempty"`
 	// ChannelMark identifies the audio channel for this speaker.
-	ChannelMark int `json:"channel_mark"`
+	ChannelMark string `json:"channel_mark"`
 	// Pronoun is the speaker's preferred pronouns.
 	Pronoun string `json:"pronoun,omitempty"`
 	// EnableSpeakerDiarization indicates whether speaker diarization is enabled.
