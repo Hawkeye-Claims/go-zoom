@@ -495,7 +495,7 @@ type RecordingTranscript struct {
 	// Type identifies the transcript format type.
 	Type string `json:"type,omitempty"`
 	// Ver is the transcript format version.
-	Ver string `json:"ver,omitempty"`
+	Ver int `json:"ver,omitempty"`
 	// RecordingID is the unique identifier of the associated recording.
 	RecordingID string `json:"recording_id,omitempty"`
 	// MeetingID is the meeting ID if the call was a Zoom meeting.
