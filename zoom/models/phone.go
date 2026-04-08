@@ -21,6 +21,8 @@ type CallHistory struct {
 	CallType string `json:"call_type,omitempty"`
 	// Direction indicates whether the call was inbound or outbound.
 	Direction enums.Direction `json:"direction,omitempty"`
+	// Duration is the duration of the call in seconds.
+	Duration int `json:"duration"`
 	// International indicates whether the call was an international call.
 	International bool `json:"international"`
 	// HideCallerID indicates whether the caller's number was withheld.
@@ -182,6 +184,8 @@ type CallPath struct {
 	RecordingID string `json:"recording_id,omitempty"`
 	// RecordingType describes the type of recording (e.g. "cloud").
 	RecordingType string `json:"recording_type,omitempty"`
+	// AI Call Summary ID is the ID of the AI-generated call summary associated with this hop, if any.
+	AICallSummaryID string `json:"ai_call_summary_id,omitempty"`
 	// HoldTime is the total hold time in seconds for this hop.
 	HoldTime int `json:"hold_time"`
 	// WaitingTime is the total waiting time in seconds for this hop.
