@@ -171,7 +171,7 @@ type CallPath struct {
 	// OperatorExtType is the extension type of the operator involved.
 	OperatorExtType string `json:"operator_ext_type,omitempty"`
 	// OperatorName is the display name of the operator involved.
-	OperatorName string `json:"operator_name,omitempty"`
+	OperatorName enums.ExtensionType `json:"operator_name,omitempty"`
 	// PressKey is the IVR key the caller pressed during this hop.
 	PressKey string `json:"press_key,omitempty"`
 	// Segment is the segment number of this call path entry.
@@ -223,7 +223,7 @@ type CallElement struct {
 	// CallerExtNumber is the extension number of the caller.
 	CallerExtNumber string `json:"caller_ext_number,omitempty"`
 	// CallerExtType is the extension type of the caller.
-	CallerExtType string `json:"caller_ext_type,omitempty"`
+	CallerExtType enums.ExtensionType `json:"caller_ext_type,omitempty"`
 	// CallerNumberType is the number type for the caller.
 	CallerNumberType string `json:"caller_number_type,omitempty"`
 	// CallerDeviceType is the device type used by the caller.
@@ -243,7 +243,7 @@ type CallElement struct {
 	// CalleeEmail is the email address of the callee.
 	CalleeEmail string `json:"callee_email,omitempty"`
 	// CalleeExtType is the extension type of the callee.
-	CalleeExtType string `json:"callee_ext_type,omitempty"`
+	CalleeExtType enums.ExtensionType `json:"callee_ext_type,omitempty"`
 	// CalleeNumberType is the number type for the callee.
 	CalleeNumberType string `json:"callee_number_type,omitempty"`
 	// CalleeDeviceType is the device type used by the callee.
@@ -285,7 +285,7 @@ type CallElement struct {
 	// OperatorExtID is the extension ID of the operator involved.
 	OperatorExtID string `json:"operator_ext_id,omitempty"`
 	// OperatorExtType is the extension type of the operator involved.
-	OperatorExtType string `json:"operator_ext_type,omitempty"`
+	OperatorExtType enums.ExtensionType `json:"operator_ext_type,omitempty"`
 	// OperatorName is the display name of the operator involved.
 	OperatorName string `json:"operator_name,omitempty"`
 	// PressKey is the IVR key pressed during this element.
