@@ -34,13 +34,21 @@ type CallHistory struct {
 	// CallerName is the display name of the caller.
 	CallerName string `json:"caller_name,omitempty"`
 	// CallerDidNumber is the DID number of the caller.
-	CallerDidNumber string `json:"caller_did_number,omitempty"`
+	CallerDIDNumber string `json:"caller_did_number,omitempty"`
 	// CallerExtNumber is the extension number of the caller.
 	CallerExtNumber string `json:"caller_ext_number,omitempty"`
 	// CallerEmail is the email address of the caller.
 	CallerEmail string `json:"caller_email,omitempty"`
 	// CallerExtType is the extension type of the caller.
 	CallerExtType enums.ExtensionType `json:"caller_ext_type,omitempty"`
+	// CallerUserID is the user ID of the caller, if available.
+	CallerUserID string `json:"caller_user_id,omitempty"`
+	// CallerEmployeeID is the employee ID of the caller, if available.
+	CallerEmployeeID string `json:"caller_employee_id,omitempty"`
+	// CallerCountryISOCode is the ISO country code for the caller's number.
+	CallerCountryISOCode string `json:"caller_country_iso_code,omitempty"`
+	// CallerCountryCode is the country calling code for the caller's number.
+	CallerCountryCode string `json:"caller_country_code,omitempty"`
 	// CalleeExtID is the extension ID of the callee.
 	CalleeExtID string `json:"callee_ext_id,omitempty"`
 	// CalleeName is the display name of the callee.
@@ -48,11 +56,19 @@ type CallHistory struct {
 	// CalleeEmail is the email address of the callee.
 	CalleeEmail string `json:"callee_email,omitempty"`
 	// CalleeDidNumber is the DID number of the callee.
-	CalleeDidNumber string `json:"callee_did_number,omitempty"`
+	CalleeDIDNumber string `json:"callee_did_number,omitempty"`
 	// CalleeExtNumber is the extension number of the callee.
 	CalleeExtNumber string `json:"callee_ext_number,omitempty"`
 	// CalleeExtType is the extension type of the callee.
 	CalleeExtType enums.ExtensionType `json:"callee_ext_type,omitempty"`
+	// CalleeUserID is the user ID of the callee, if available.
+	CalleeUserID string `json:"callee_user_id,omitempty"`
+	// CalleeEmployeeID is the employee ID of the callee, if available.
+	CalleeEmployeeID string `json:"callee_employee_id,omitempty"`
+	// CalleeCountryCode is the country calling code for the callee's number.
+	CalleeCountryISOCode string `json:"callee_country_iso_code,omitempty"`
+	// CalleeCountryCode is the country calling code for the callee's number.
+	CalleeCountryCode string `json:"callee_country_code,omitempty"`
 	// Department is the department associated with this call log entry.
 	Department string `json:"department,omitempty"`
 	// CostCenter is the cost center associated with this call log entry.
@@ -84,6 +100,8 @@ type CallHistory struct {
 type CallPath struct {
 	// ID is the unique identifier for this call path segment.
 	ID string `json:"id,omitempty"`
+	// CallPathID is the unique identifier for the call path entry.
+	CallPathID string `json:"call_path_id,omitempty"`
 	// CallID is the unique identifier for the call.
 	CallID string `json:"call_id,omitempty"`
 	// ConnectType indicates whether this hop was internal or external.
@@ -92,12 +110,16 @@ type CallPath struct {
 	CallType enums.CallType `json:"call_type,omitempty"`
 	// Direction indicates whether this hop was inbound or outbound.
 	Direction enums.Direction `json:"direction,omitempty"`
+	// International indicates whether this hop was an international call.
+	International bool `json:"international"`
 	// HideCallerID indicates whether the caller's number was withheld.
 	HideCallerID bool `json:"hide_caller_id"`
 	// EndToEnd indicates whether this hop used end-to-end encryption.
 	EndToEnd bool `json:"end_to_end"`
 	// CallerExtID is the extension ID of the caller for this hop.
 	CallerExtID string `json:"caller_ext_id,omitempty"`
+	// CallerUserID is the user ID of the caller for this hop, if available.
+	CallerUserID string `json:"caller_user_id,omitempty"`
 	// CallerName is the display name of the caller.
 	CallerName string `json:"caller_name,omitempty"`
 	// CallerEmail is the email address of the caller.
@@ -112,12 +134,14 @@ type CallPath struct {
 	CallerNumberType enums.NumberType `json:"caller_number_type,omitempty"`
 	// CallerDeviceType is the device type used by the caller.
 	CallerDeviceType string `json:"caller_device_type,omitempty"`
-	// CallerCountryIsoCode is the ISO country code for the caller's number.
-	CallerCountryIsoCode string `json:"caller_country_iso_code,omitempty"`
+	// CallerCountryISOCode is the ISO country code for the caller's number.
+	CallerCountryISOCode string `json:"caller_country_iso_code,omitempty"`
 	// CallerCountryCode is the country calling code for the caller's number.
 	CallerCountryCode string `json:"caller_country_code,omitempty"`
 	// CalleeExtID is the extension ID of the callee for this hop.
 	CalleeExtID string `json:"callee_ext_id,omitempty"`
+	// CalleeUserID is the user ID of the callee for this hop, if available.
+	CalleeUserID string `json:"callee_user_id,omitempty"`
 	// CalleeName is the display name of the callee.
 	CalleeName string `json:"callee_name,omitempty"`
 	// CalleeDidNumber is the DID number of the callee.
@@ -132,8 +156,8 @@ type CallPath struct {
 	CalleeNumberType enums.NumberType `json:"callee_number_type,omitempty"`
 	// CalleeDeviceType is the device type used by the callee.
 	CalleeDeviceType string `json:"callee_device_type,omitempty"`
-	// CalleeCountryIsoCode is the ISO country code for the callee's number.
-	CalleeCountryIsoCode string `json:"callee_country_iso_code,omitempty"`
+	// CalleeCountryISOCode is the ISO country code for the callee's number.
+	CalleeCountryISOCode string `json:"callee_country_iso_code,omitempty"`
 	// CalleeCountryCode is the country calling code for the callee's number.
 	CalleeCountryCode string `json:"callee_country_code,omitempty"`
 	// ClientCode is an optional annotation code added to the call log.
@@ -155,7 +179,7 @@ type CallPath struct {
 	// EndTime is the time this path segment ended.
 	EndTime time.Time `json:"end_time"`
 	// Event describes the routing event that triggered this hop (e.g. transfer).
-	Event string `json:"event,omitempty"`
+	Event enums.EventType `json:"event,omitempty"`
 	// Result is the outcome of this call path segment.
 	Result enums.CallResult `json:"result,omitempty"`
 	// ResultReason provides additional detail about the call result.
@@ -169,9 +193,17 @@ type CallPath struct {
 	// OperatorExtID is the extension ID of the operator involved.
 	OperatorExtID string `json:"operator_ext_id,omitempty"`
 	// OperatorExtType is the extension type of the operator involved.
-	OperatorExtType string `json:"operator_ext_type,omitempty"`
+	OperatorExtType enums.ExtensionType `json:"operator_ext_type,omitempty"`
 	// OperatorName is the display name of the operator involved.
-	OperatorName enums.ExtensionType `json:"operator_name,omitempty"`
+	OperatorName string `json:"operator_name,omitempty"`
+	// HandlerExtNumber is the extension number of the handler involved.
+	HandlerExtNumber string `json:"handler_ext_number,omitempty"`
+	// HandlerExtID is the extension ID of the handler involved.
+	HandlerExtID string `json:"handler_ext_id,omitempty"`
+	// HandlerExtType is the extension type of the handler involved.
+	HandlerExtType enums.ExtensionType `json:"handler_ext_type,omitempty"`
+	// HandlerName is the display name of the operator involved.
+	HandlerName string `json:"handler_name,omitempty"`
 	// PressKey is the IVR key the caller pressed during this hop.
 	PressKey string `json:"press_key,omitempty"`
 	// Segment is the segment number of this call path entry.
@@ -208,12 +240,16 @@ type CallElement struct {
 	CallType string `json:"call_type,omitempty"`
 	// Direction indicates whether the call was inbound or outbound.
 	Direction string `json:"direction,omitempty"`
+	// International indicates whether this element was an international call.
+	International bool `json:"international"`
 	// HideCallerID indicates whether the caller's number was withheld.
 	HideCallerID bool `json:"hide_caller_id"`
 	// EndToEnd indicates whether the call used end-to-end encryption.
 	EndToEnd bool `json:"end_to_end"`
 	// CallerExtID is the extension ID of the caller.
 	CallerExtID string `json:"caller_ext_id,omitempty"`
+	// CallerUserID is the user ID of the caller, if available.
+	CallerUserID string `json:"caller_user_id,omitempty"`
 	// CallerName is the display name of the caller.
 	CallerName string `json:"caller_name,omitempty"`
 	// CallerEmail is the email address of the caller.
@@ -223,7 +259,7 @@ type CallElement struct {
 	// CallerExtNumber is the extension number of the caller.
 	CallerExtNumber string `json:"caller_ext_number,omitempty"`
 	// CallerExtType is the extension type of the caller.
-	CallerExtType enums.ExtensionType `json:"caller_ext_type,omitempty"`
+	CallerExtType string `json:"caller_ext_type,omitempty"`
 	// CallerNumberType is the number type for the caller.
 	CallerNumberType string `json:"caller_number_type,omitempty"`
 	// CallerDeviceType is the device type used by the caller.
@@ -234,6 +270,8 @@ type CallElement struct {
 	CallerCountryCode string `json:"caller_country_code,omitempty"`
 	// CalleeExtID is the extension ID of the callee.
 	CalleeExtID string `json:"callee_ext_id,omitempty"`
+	// CalleeUserID is the user ID of the callee, if available.
+	CalleeUserID string `json:"callee_user_id,omitempty"`
 	// CalleeName is the display name of the callee.
 	CalleeName string `json:"callee_name,omitempty"`
 	// CalleeDidNumber is the DID number of the callee.
@@ -243,7 +281,7 @@ type CallElement struct {
 	// CalleeEmail is the email address of the callee.
 	CalleeEmail string `json:"callee_email,omitempty"`
 	// CalleeExtType is the extension type of the callee.
-	CalleeExtType enums.ExtensionType `json:"callee_ext_type,omitempty"`
+	CalleeExtType string `json:"callee_ext_type,omitempty"`
 	// CalleeNumberType is the number type for the callee.
 	CalleeNumberType string `json:"callee_number_type,omitempty"`
 	// CalleeDeviceType is the device type used by the callee.
@@ -285,9 +323,17 @@ type CallElement struct {
 	// OperatorExtID is the extension ID of the operator involved.
 	OperatorExtID string `json:"operator_ext_id,omitempty"`
 	// OperatorExtType is the extension type of the operator involved.
-	OperatorExtType enums.ExtensionType `json:"operator_ext_type,omitempty"`
+	OperatorExtType string `json:"operator_ext_type,omitempty"`
 	// OperatorName is the display name of the operator involved.
 	OperatorName string `json:"operator_name,omitempty"`
+	// HandlerExtNumber is the extension number of the handler involved.
+	HandlerExtNumber string `json:"handler_ext_number,omitempty"`
+	// HandlerExtID is the extension ID of the handler involved.
+	HandlerExtID string `json:"handler_ext_id,omitempty"`
+	// HandlerExtType is the extension type of the handler involved.
+	HandlerExtType string `json:"handler_ext_type,omitempty"`
+	// HandlerName is the display name of the handler involved.
+	HandlerName string `json:"handler_name,omitempty"`
 	// PressKey is the IVR key pressed during this element.
 	PressKey string `json:"press_key,omitempty"`
 	// Segment is the segment number of this call element.
@@ -300,6 +346,8 @@ type CallElement struct {
 	RecordingID string `json:"recording_id,omitempty"`
 	// RecordingType describes the type of recording for this element.
 	RecordingType string `json:"recording_type,omitempty"`
+	// AICallSummaryID is the ID of the AI-generated call summary for this element, if any.
+	AICallSummaryID string `json:"ai_call_summary_id,omitempty"`
 	// HoldTime is the total hold time in seconds.
 	HoldTime int `json:"hold_time"`
 	// WaitingTime is the total waiting time in seconds.

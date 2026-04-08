@@ -199,3 +199,54 @@ const (
 	// RingBackToParker rings back the user who originally parked the call.
 	RingBackToParker CallNotPickedUpAction = 100
 )
+
+// EventType classifies the type of event that occurred during a phone call.
+type EventType string
+
+const (
+	// Incoming indicates an incoming call event.
+	Incoming EventType = "incoming"
+	// TransferFromZoomContactCenter indicates a call transfer from Zoom Contact Center.
+	TransferFromZoomContactCenter EventType = "transfer_from_zoom_contact_center"
+	// SharedLineIncoming indicates an incoming call to a shared line group extension.
+	SharedLineIncoming EventType = "shared_line_incoming"
+	// Outgoing indicates an outgoing call event.
+	Outgoing EventType = "outgoing"
+	// CallMeOn indicates a Call Me On event where the user initiates a call to a specified number.
+	CallMeOn EventType = "call_me_on"
+	// OutgoingToZoomContactCenter indicates an outgoing call transfer to Zoom Contact Center.
+	OutgoingToZoomContactCenter EventType = "outgoing_to_zoom_contact_center"
+	// WarmTransfer indicates a warm transfer event where the user transfers an active call to another destination after speaking to the recipient.
+	WarmTransfer EventType = "warm_transfer"
+	// Forward indicates a call forwarding event where the user forwards an active call to another destination without speaking to the recipient first.
+	Forward EventType = "forward"
+	// RingToMember indicates a call event where the call is ringing to a specific member (e.g. in a call queue).
+	RingToMember EventType = "ring_to_member"
+	// Overflow indicates a call event where the call is redirected due to an overflow condition (e.g. all agents are busy in a call queue).
+	EventOverflow EventType = "overflow"
+	// DirectTransfer indicates a direct transfer event where the user transfers an active call to another destination without speaking to the recipient first,
+	// and the call is not classified as a "Forward" event (e.g. transferring a call from one extension to another within the same account).
+	DirectTransfer EventType = "direct_transfer"
+	// Barge indicates a barge event where the user barges into an active call between other parties (e.g. in a call queue or shared line group).
+	Barge EventType = "barge"
+	// Monitor indicates a monitor event where the user listens in on an active call between other parties without participating (e.g. in a call queue or shared line group).
+	Monitor EventType = "monitor"
+	// Whisper indicates a whisper event where the user speaks to one party in an active call between other parties without the other parties hearing (e.g. in a call queue or shared line group).
+	Whisper EventType = "whisper"
+	// Listen indicates a listen event where the user listens in on an active call between other parties and can speak to all parties (e.g. in a call queue or shared line group).
+	Listen EventType = "listen"
+	// Takeover indicates a takeover event where the user takes over an active call between other parties, disconnecting the original parties from the call (e.g. in a call queue or shared line group).
+	Takeover EventType = "takeover"
+	// ConferenceBarge indicates a conference barge event where the user barges into an active conference call between other parties (e.g. in a call queue or shared line group).
+	ConferenceBarge EventType = "conference_barge"
+	// Park indicates a call park event where the user parks an active call, making it available for retrieval by other users (e.g. in a call queue or shared line group
+	Park EventType = "park"
+	// Timeout indicates a call event where the call has reached a timeout condition (e.g. ringing timeout, hold timeout, park timeout).
+	Timeout EventType = "timeout"
+	// ParkPickUp indicates a call event where a parked call is picked up by a user (e.g. in a call queue or shared line group
+	ParkPickUp EventType = "park_pick_up"
+	// Merge indicates a call event where the user merges an active call with another call, creating a conference call between all parties (e.g. in a call queue or shared line group).
+	Merge EventType = "merge"
+	// Shared indicates a call event where the user shares content (e.g. screen sharing, file sharing) during an active call (e.g. in a call queue or shared line group).
+	Shared EventType = "shared"
+)
