@@ -8,6 +8,54 @@ A lightweight [Zoom API](https://marketplace.zoom.us/docs/api-reference/introduc
 go get github.com/Hawkeye-Claims/go-zoom
 ```
 
+## CLI Wrapper (No External CLI Dependencies)
+
+A lightweight CLI wrapper is included under `cmd/go-zoom` and uses only the Go standard library for command parsing and output formatting.
+
+Run it with:
+
+```sh
+go run ./cmd/go-zoom <command> [subcommand] [flags]
+```
+
+### Authentication Commands
+
+The CLI exposes an `auth` command for SDK authentication options:
+
+```sh
+# Validate Server-to-Server OAuth credentials
+go run ./cmd/go-zoom auth test --grant-type account_credentials
+
+# Run an Authorization Code helper flow locally
+go run ./cmd/go-zoom auth authorization-code \
+  --redirect-uri http://localhost:8080/oauth/callback
+```
+
+Credentials can be provided via flags or environment variables:
+
+- `ZOOM_ACCOUNT_ID`
+- `ZOOM_CLIENT_ID`
+- `ZOOM_CLIENT_SECRET`
+
+### Service Commands
+
+Service-oriented commands currently map to the major SDK service groups:
+
+```sh
+# Users
+go run ./cmd/go-zoom users get --user-id me
+
+# Meetings
+go run ./cmd/go-zoom meetings get --meeting-id 123456789
+go run ./cmd/go-zoom meetings summary get --meeting-id 123456789
+
+# Phone
+go run ./cmd/go-zoom phone call-history get --user-id userId
+go run ./cmd/go-zoom phone recordings get --user-id userId
+go run ./cmd/go-zoom phone settings get
+go run ./cmd/go-zoom phone users get --user-id userId
+```
+
 ## Client Setup
 
 ### Server-to-Server OAuth (default)
