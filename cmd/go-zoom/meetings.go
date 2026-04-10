@@ -12,17 +12,19 @@ import (
 // runMeetings dispatches meetings subcommands.
 func (c *cli) runMeetings(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "meetings commands: get, summary get")
+		fmt.Fprintln(c.stderr, "meetings commands: get, create, summary get")
 		return nil
 	}
 
 	switch args[0] {
 	case "get":
 		return c.runMeetingsGet(args[1:])
+	case "create":
+		return c.runMeetingsCreate(args[1:])
 	case "summary":
 		return c.runMeetingsSummary(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "meetings commands: get, summary get")
+		fmt.Fprintln(c.stderr, "meetings commands: get, create, summary get")
 		return nil
 	default:
 		return fmt.Errorf("unknown meetings command %q", args[0])
@@ -67,6 +69,43 @@ func (c *cli) runMeetingsGet(args []string) error {
 	}
 
 	return c.writeJSON(meetings)
+}
+
+// runMeetingsCreate creates a meeting for a user from JSON payload data.
+func (c *cli) runMeetingsCreate(args []string) error {
+	fs := flag.NewFlagSet("meetings create", flag.ContinueOnError)
+	fs.SetOutput(c.stderr)
+
+	cfg := c.bindClientFlags(fs, true, true)
+	userID := fs.String("user-id", "", "User ID for whom to create the meeting")
+	jsonInput := fs.String("json", "", "Inline JSON object for meeting attributes")
+	jsonFile := fs.String("json-file", "", "Path to JSON file for meeting attributes")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
+		return err
+	}
+	if *userID == "" {
+		return errors.New("--user-id is required")
+	}
+
+	meetingAttributes, err := readJSONInput[client.MeetingAttributes](*jsonInput, *jsonFile)
+	if err != nil {
+		return err
+	}
+
+	zoomClient, err := c.newServiceClient(cfg)
+	if err != nil {
+		return err
+	}
+
+	meeting, _, err := zoomClient.Meetings.Create(context.Background(), *userID, meetingAttributes)
+	if err != nil {
+		return err
+	}
+
+	return c.writeJSON(meeting)
 }
 
 // runMeetingsSummary dispatches meetings summary commands.

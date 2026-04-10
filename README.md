@@ -44,9 +44,21 @@ Service-oriented commands currently map to the major SDK service groups:
 ```sh
 # Users
 go run ./cmd/go-zoom users get --user-id me
+go run ./cmd/go-zoom users create \
+  --action create \
+  --json '{"email":"new.user@example.com","type":1,"first_name":"New","last_name":"User"}'
+go run ./cmd/go-zoom users create \
+  --action create \
+  --json-file /path/to/user.json
 
 # Meetings
 go run ./cmd/go-zoom meetings get --meeting-id 123456789
+go run ./cmd/go-zoom meetings create \
+  --user-id me \
+  --json '{"topic":"Project kickoff","type":2,"start_time":"2026-04-11T15:00:00Z","duration":30}'
+go run ./cmd/go-zoom meetings create \
+  --user-id me \
+  --json-file /path/to/meeting.json
 go run ./cmd/go-zoom meetings summary get --meeting-id 123456789
 
 # Phone

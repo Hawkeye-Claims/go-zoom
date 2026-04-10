@@ -36,8 +36,8 @@ Usage:
 
 Commands:
   auth                     Authentication helpers (SDK auth options)
-  users get                Get one user or list users
-  meetings get             Get one meeting or list a user's meetings
+  users get|create         Get/list users or create a user
+  meetings get|create      Get/list meetings or create a meeting
   meetings summary get     Get one meeting summary or list summaries
   phone call-history get   Get account/user/single call history
   phone recordings get     Get account/user/call recordings
