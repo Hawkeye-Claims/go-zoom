@@ -41,6 +41,8 @@ Commands:
   meetings summary get     Get one meeting summary or list summaries
   phone call-history get   Get account/user/single call history
   phone recordings get     Get account/user/call recordings
+  phone recordings download-recording   Download a recording file
+  phone recordings download-transcript  Download transcript JSON
   phone settings get       Get account phone settings
   phone users get          Get one phone user or list phone users
 

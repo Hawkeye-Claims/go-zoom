@@ -14,11 +14,6 @@ func readJSONInput[T any](jsonInput string, jsonFile string) (T, error) {
 	return readJSONInputWithFlags[T](jsonInput, jsonFile, "--json", "--json-file", true)
 }
 
-// readOptionalJSONInput parses JSON from inline or file input when provided.
-func readOptionalJSONInput[T any](jsonInput string, jsonFile string) (*T, error) {
-	return readOptionalJSONInputWithFlags[T](jsonInput, jsonFile, "--json", "--json-file")
-}
-
 // readOptionalJSONInputWithFlags parses JSON from inline or file input when provided.
 func readOptionalJSONInputWithFlags[T any](jsonInput string, jsonFile string, inlineFlag string, fileFlag string) (*T, error) {
 	if jsonInput == "" && jsonFile == "" {

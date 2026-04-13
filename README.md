@@ -73,6 +73,12 @@ go run ./cmd/go-zoom phone call-history get --user-id userId
 go run ./cmd/go-zoom phone call-history get \
   --query-json '{"from":"2026-04-01","to":"2026-04-30","keyword":"sales"}'
 go run ./cmd/go-zoom phone recordings get --user-id userId
+go run ./cmd/go-zoom phone recordings download-recording \
+  --file-id fileId \
+  -o /tmp/call-recording.m4a
+go run ./cmd/go-zoom phone recordings download-transcript \
+  --recording-id recordingId \
+  -o /tmp/call-transcript.json
 go run ./cmd/go-zoom phone settings get
 go run ./cmd/go-zoom phone users get --user-id userId
 go run ./cmd/go-zoom phone users get \
@@ -81,6 +87,7 @@ go run ./cmd/go-zoom phone users get \
 
 `get` commands that support filtering accept `--query-json` and `--query-json-file`.
 These use strict JSON decoding (unknown fields are rejected), just like create payloads.
+The download subcommands require `-o`/`--output` to write files.
 
 ## Client Setup
 
