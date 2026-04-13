@@ -11,12 +11,36 @@ import (
 
 // readJSONInput parses JSON from either an inline flag value or a JSON file path.
 func readJSONInput[T any](jsonInput string, jsonFile string) (T, error) {
+	return readJSONInputWithFlags[T](jsonInput, jsonFile, "--json", "--json-file", true)
+}
+
+// readOptionalJSONInput parses JSON from inline or file input when provided.
+func readOptionalJSONInput[T any](jsonInput string, jsonFile string) (*T, error) {
+	return readOptionalJSONInputWithFlags[T](jsonInput, jsonFile, "--json", "--json-file")
+}
+
+// readOptionalJSONInputWithFlags parses JSON from inline or file input when provided.
+func readOptionalJSONInputWithFlags[T any](jsonInput string, jsonFile string, inlineFlag string, fileFlag string) (*T, error) {
+	if jsonInput == "" && jsonFile == "" {
+		return nil, nil
+	}
+	payload, err := readJSONInputWithFlags[T](jsonInput, jsonFile, inlineFlag, fileFlag, false)
+	if err != nil {
+		return nil, err
+	}
+	return &payload, nil
+}
+
+func readJSONInputWithFlags[T any](jsonInput string, jsonFile string, inlineFlag string, fileFlag string, required bool) (T, error) {
 	var payload T
 	if jsonInput == "" && jsonFile == "" {
-		return payload, errors.New("one of --json or --json-file is required")
+		if required {
+			return payload, fmt.Errorf("one of %s or %s is required", inlineFlag, fileFlag)
+		}
+		return payload, nil
 	}
 	if jsonInput != "" && jsonFile != "" {
-		return payload, errors.New("--json and --json-file cannot be used together")
+		return payload, fmt.Errorf("%s and %s cannot be used together", inlineFlag, fileFlag)
 	}
 
 	var raw []byte
@@ -33,6 +57,7 @@ func readJSONInput[T any](jsonInput string, jsonFile string) (T, error) {
 	if err := unmarshalJSONStrict(raw, &payload); err != nil {
 		return payload, err
 	}
+
 	return payload, nil
 }
 

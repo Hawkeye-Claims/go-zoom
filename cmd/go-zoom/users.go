@@ -36,6 +36,8 @@ func (c *cli) runUsersGet(args []string) error {
 
 	cfg := c.bindClientFlags(fs, true, true)
 	userID := fs.String("user-id", "", "User ID or email (optional; empty lists users)")
+	queryJSON := fs.String("query-json", "", "Inline JSON object for optional get query parameters")
+	queryJSONFile := fs.String("query-json-file", "", "Path to JSON file for optional get query parameters")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -48,12 +50,27 @@ func (c *cli) runUsersGet(args []string) error {
 		return err
 	}
 
-	var users any
+	opts := make([]client.UserGetOptions, 0, 2)
 	if *userID != "" {
-		users, _, err = zoomClient.Users.Get(context.Background(), client.WithUserId(*userID))
+		opts = append(opts, client.WithUserId(*userID))
+		queryParameters, queryErr := readOptionalJSONInputWithFlags[client.UserQueryParameters](*queryJSON, *queryJSONFile, "--query-json", "--query-json-file")
+		if queryErr != nil {
+			return queryErr
+		}
+		if queryParameters != nil {
+			opts = append(opts, client.WithUserQueryParameters(queryParameters))
+		}
 	} else {
-		users, _, err = zoomClient.Users.Get(context.Background())
+		queryParameters, queryErr := readOptionalJSONInputWithFlags[client.ListUserQueryParameters](*queryJSON, *queryJSONFile, "--query-json", "--query-json-file")
+		if queryErr != nil {
+			return queryErr
+		}
+		if queryParameters != nil {
+			opts = append(opts, client.WithListUserQueryParameters(queryParameters))
+		}
 	}
+
+	users, _, err := zoomClient.Users.Get(context.Background(), opts...)
 	if err != nil {
 		return err
 	}

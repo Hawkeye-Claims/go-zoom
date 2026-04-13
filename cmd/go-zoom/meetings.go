@@ -39,6 +39,8 @@ func (c *cli) runMeetingsGet(args []string) error {
 	cfg := c.bindClientFlags(fs, true, true)
 	meetingID := fs.String("meeting-id", "", "Meeting ID")
 	userID := fs.String("user-id", "", "User ID (required when listing meetings)")
+	queryJSON := fs.String("query-json", "", "Inline JSON object for optional get query parameters")
+	queryJSONFile := fs.String("query-json-file", "", "Path to JSON file for optional get query parameters")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -58,12 +60,28 @@ func (c *cli) runMeetingsGet(args []string) error {
 		return err
 	}
 
-	var meetings any
+	opts := make([]client.MeetingGetOptions, 0, 2)
 	if *meetingID != "" {
-		meetings, _, err = zoomClient.Meetings.Get(context.Background(), client.WithMeetingId(*meetingID))
+		opts = append(opts, client.WithMeetingId(*meetingID))
+		queryParameters, queryErr := readOptionalJSONInputWithFlags[client.MeetingQueryParameters](*queryJSON, *queryJSONFile, "--query-json", "--query-json-file")
+		if queryErr != nil {
+			return queryErr
+		}
+		if queryParameters != nil {
+			opts = append(opts, client.WithMeetingQueryParameters(queryParameters))
+		}
 	} else {
-		meetings, _, err = zoomClient.Meetings.Get(context.Background(), client.WithMeetingUserId(*userID))
+		opts = append(opts, client.WithMeetingUserId(*userID))
+		queryParameters, queryErr := readOptionalJSONInputWithFlags[client.MeetingListQueryParameters](*queryJSON, *queryJSONFile, "--query-json", "--query-json-file")
+		if queryErr != nil {
+			return queryErr
+		}
+		if queryParameters != nil {
+			opts = append(opts, client.WithMeetingListQueryParameters(queryParameters))
+		}
 	}
+
+	meetings, _, err := zoomClient.Meetings.Get(context.Background(), opts...)
 	if err != nil {
 		return err
 	}
@@ -133,6 +151,8 @@ func (c *cli) runMeetingsSummaryGet(args []string) error {
 
 	cfg := c.bindClientFlags(fs, true, true)
 	meetingID := fs.String("meeting-id", "", "Meeting ID (optional)")
+	queryJSON := fs.String("query-json", "", "Inline JSON object for optional get query parameters")
+	queryJSONFile := fs.String("query-json-file", "", "Path to JSON file for optional get query parameters")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -145,12 +165,20 @@ func (c *cli) runMeetingsSummaryGet(args []string) error {
 		return err
 	}
 
-	var summaries any
+	opts := make([]client.MeetingsSummaryGetOptions, 0, 2)
 	if *meetingID != "" {
-		summaries, _, err = zoomClient.Meetings.GetSummary(context.Background(), client.WithMeetingIdForSummary(*meetingID))
-	} else {
-		summaries, _, err = zoomClient.Meetings.GetSummary(context.Background())
+		opts = append(opts, client.WithMeetingIdForSummary(*meetingID))
 	}
+
+	queryParameters, err := readOptionalJSONInputWithFlags[client.MeetingSummaryQueryParameters](*queryJSON, *queryJSONFile, "--query-json", "--query-json-file")
+	if err != nil {
+		return err
+	}
+	if queryParameters != nil {
+		opts = append(opts, client.WithMeetingSummaryQueryParameters(queryParameters))
+	}
+
+	summaries, _, err := zoomClient.Meetings.GetSummary(context.Background(), opts...)
 	if err != nil {
 		return err
 	}
