@@ -8,6 +8,59 @@ A lightweight [Zoom API](https://marketplace.zoom.us/docs/api-reference/introduc
 go get github.com/Hawkeye-Claims/go-zoom
 ```
 
+## CLI Wrapper (No External CLI Dependencies)
+
+A lightweight CLI wrapper is included under `cmd/go-zoom` and uses only the Go standard library for command parsing and output formatting.
+
+Run it with:
+
+```sh
+go run ./cmd/go-zoom <command> [subcommand] [flags]
+```
+
+### Authentication Commands
+
+The CLI exposes an `auth` command for SDK authentication options:
+
+```sh
+# Validate Server-to-Server OAuth credentials
+go run ./cmd/go-zoom auth test --grant-type account_credentials
+
+# Run an Authorization Code helper flow locally
+go run ./cmd/go-zoom auth authorization-code \
+  --redirect-uri http://localhost:8080/oauth/callback
+```
+
+Credentials can be provided via flags or environment variables:
+
+- `ZOOM_ACCOUNT_ID`
+- `ZOOM_CLIENT_ID`
+- `ZOOM_CLIENT_SECRET`
+
+### Service Commands
+
+The CLI covers `users`, `meetings`, and `phone` service groups.
+Use `go run ./cmd/go-zoom --help` (and `<command> --help`) to see the full command list.
+Below are a few common examples:
+
+```sh
+# Read a user
+go run ./cmd/go-zoom users get --user-id me
+
+# Create a meeting from inline JSON
+go run ./cmd/go-zoom meetings create \
+  --user-id me \
+  --json '{"topic":"Project kickoff","type":2,"start_time":"2026-04-11T15:00:00Z","duration":30}'
+
+# Create a user from a JSON file
+go run ./cmd/go-zoom users create \
+  --action create \
+  --json-file /path/to/user.json
+```
+
+`get` commands that support filtering accept `--query-json` and `--query-json-file`.
+These use strict JSON decoding (unknown fields are rejected), just like create payloads.
+
 ## Client Setup
 
 ### Server-to-Server OAuth (default)

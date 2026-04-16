@@ -209,17 +209,15 @@ func (r *PhoneRecordingsService) Get(ctx context.Context, opts ...CallRecordingG
 // DownloadCallRecording streams the audio file for the recording identified
 // by fileId into w. The raw HTTP response is returned alongside any error.
 func (r *PhoneRecordingsService) DownloadCallRecording(ctx context.Context, fileId string, w io.Writer) (*http.Response, error) {
-	res, err := r.client.request(ctx, http.MethodGet, fmt.Sprintf("/phone/recordings/download/%s", url.PathEscape(fileId)), nil, nil, nil)
+	res, err := r.client.request(ctx, http.MethodGet, fmt.Sprintf("/phone/recordings/download/%s", url.PathEscape(fileId)), nil, nil, w)
 	if err != nil {
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
-	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
 	}
-	_, err = io.Copy(w, res.Body)
-	return res, err
+	return res, nil
 }
 
 // DownloadCallTranscript retrieves the transcript for the recording identified

@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"sync"
@@ -337,6 +338,13 @@ func (c *Client) request(ctx context.Context, method string, path string, query 
 	}
 
 	if out != nil {
+		if writer, ok := out.(io.Writer); ok {
+			_, err = io.Copy(writer, res.Body)
+			if err != nil {
+				return res, fmt.Errorf("Error writing response body: %w", err)
+			}
+			return res, nil
+		}
 		err = json.NewDecoder(res.Body).Decode(out)
 		if err != nil {
 			return res, fmt.Errorf("Error decoding response body: %w", err)
