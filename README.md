@@ -39,55 +39,27 @@ Credentials can be provided via flags or environment variables:
 
 ### Service Commands
 
-Service-oriented commands currently map to the major SDK service groups:
+The CLI covers `users`, `meetings`, and `phone` service groups.
+Use `go run ./cmd/go-zoom --help` (and `<command> --help`) to see the full command list.
+Below are a few common examples:
 
 ```sh
-# Users
+# Read a user
 go run ./cmd/go-zoom users get --user-id me
-go run ./cmd/go-zoom users get \
-  --query-json '{"status":"active","include_fields":"custom_attributes"}'
-go run ./cmd/go-zoom users create \
-  --action create \
-  --json '{"email":"new.user@example.com","type":1,"first_name":"New","last_name":"User"}'
-go run ./cmd/go-zoom users create \
-  --action create \
-  --json-file /path/to/user.json
 
-# Meetings
-go run ./cmd/go-zoom meetings get --meeting-id 123456789
-go run ./cmd/go-zoom meetings get \
-  --user-id me \
-  --query-json '{"type":"scheduled","timezone":"America/New_York"}'
+# Create a meeting from inline JSON
 go run ./cmd/go-zoom meetings create \
   --user-id me \
   --json '{"topic":"Project kickoff","type":2,"start_time":"2026-04-11T15:00:00Z","duration":30}'
-go run ./cmd/go-zoom meetings create \
-  --user-id me \
-  --json-file /path/to/meeting.json
-go run ./cmd/go-zoom meetings summary get --meeting-id 123456789
-go run ./cmd/go-zoom meetings summary get \
-  --query-json '{"from":"2026-04-01T00:00:00Z","to":"2026-04-30T23:59:59Z","time_filter_field":"summary_start_time"}'
 
-# Phone
-go run ./cmd/go-zoom phone call-history get --user-id userId
-go run ./cmd/go-zoom phone call-history get \
-  --query-json '{"from":"2026-04-01","to":"2026-04-30","keyword":"sales"}'
-go run ./cmd/go-zoom phone recordings get --user-id userId
-go run ./cmd/go-zoom phone recordings download-recording \
-  --file-id fileId \
-  -o /tmp/call-recording.m4a
-go run ./cmd/go-zoom phone recordings download-transcript \
-  --recording-id recordingId \
-  -o /tmp/call-transcript.json
-go run ./cmd/go-zoom phone settings get
-go run ./cmd/go-zoom phone users get --user-id userId
-go run ./cmd/go-zoom phone users get \
-  --query-json '{"status":"active","keyword":"jane"}'
+# Create a user from a JSON file
+go run ./cmd/go-zoom users create \
+  --action create \
+  --json-file /path/to/user.json
 ```
 
 `get` commands that support filtering accept `--query-json` and `--query-json-file`.
 These use strict JSON decoding (unknown fields are rejected), just like create payloads.
-The download subcommands require `-o`/`--output` to write files.
 
 ## Client Setup
 
