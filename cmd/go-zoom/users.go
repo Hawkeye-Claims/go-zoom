@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 
@@ -12,7 +13,7 @@ import (
 // runUsers dispatches users subcommands.
 func (c *cli) runUsers(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "users commands: get, create")
+		fmt.Fprintln(c.stderr, "users commands: get, create, update, delete")
 		return nil
 	}
 
@@ -21,8 +22,12 @@ func (c *cli) runUsers(args []string) error {
 		return c.runUsersGet(args[1:])
 	case "create":
 		return c.runUsersCreate(args[1:])
+	case "update":
+		return c.runUsersUpdate(args[1:])
+	case "delete":
+		return c.runUsersDelete(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "users commands: get, create")
+		fmt.Fprintln(c.stderr, "users commands: get, create, update, delete")
 		return nil
 	default:
 		return fmt.Errorf("unknown users command %q", args[0])
@@ -117,4 +122,95 @@ func (c *cli) runUsersCreate(args []string) error {
 	}
 
 	return c.writeJSON(user)
+}
+
+// runUsersUpdate patches an existing user from JSON payload data.
+func (c *cli) runUsersUpdate(args []string) error {
+	fs := flag.NewFlagSet("users update", flag.ContinueOnError)
+	fs.SetOutput(c.stderr)
+
+	cfg := c.bindClientFlags(fs, true, true)
+	userID := fs.String("user-id", "", "User ID or email (required)")
+	jsonInput := fs.String("json", "", "Inline JSON object for user update attributes")
+	jsonFile := fs.String("json-file", "", "Path to JSON file for user update attributes")
+	queryJSON := fs.String("query-json", "", "Inline JSON object for optional patch query parameters")
+	queryJSONFile := fs.String("query-json-file", "", "Path to JSON file for optional patch query parameters")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
+		return err
+	}
+	if *userID == "" {
+		return errors.New("--user-id is required")
+	}
+
+	userAttributes, err := readJSONInput[client.UserUpdateAttributes](*jsonInput, *jsonFile)
+	if err != nil {
+		return err
+	}
+
+	queryParameters, err := readOptionalJSONInputWithFlags[client.UserPatchQueryParameters](*queryJSON, *queryJSONFile, "--query-json", "--query-json-file")
+	if err != nil {
+		return err
+	}
+
+	zoomClient, err := c.newServiceClient(cfg)
+	if err != nil {
+		return err
+	}
+
+	opts := make([]client.UserPatchOptions, 0, 1)
+	if queryParameters != nil {
+		opts = append(opts, client.WithUserPatchQueryParameters(queryParameters))
+	}
+
+	if _, err := zoomClient.Users.Update(context.Background(), *userID, &userAttributes, opts...); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(c.stdout, "user %s updated\n", *userID)
+	return nil
+}
+
+// runUsersDelete deletes a user with optional transfer/delete query parameters.
+func (c *cli) runUsersDelete(args []string) error {
+	fs := flag.NewFlagSet("users delete", flag.ContinueOnError)
+	fs.SetOutput(c.stderr)
+
+	cfg := c.bindClientFlags(fs, true, true)
+	userID := fs.String("user-id", "", "User ID or email (required)")
+	queryJSON := fs.String("query-json", "", "Inline JSON object for optional delete query parameters")
+	queryJSONFile := fs.String("query-json-file", "", "Path to JSON file for optional delete query parameters")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
+		return err
+	}
+	if *userID == "" {
+		return errors.New("--user-id is required")
+	}
+
+	queryParameters, err := readOptionalJSONInputWithFlags[client.UserDeleteQueryParameters](*queryJSON, *queryJSONFile, "--query-json", "--query-json-file")
+	if err != nil {
+		return err
+	}
+
+	zoomClient, err := c.newServiceClient(cfg)
+	if err != nil {
+		return err
+	}
+
+	opts := make([]client.UserDeleteOptions, 0, 1)
+	if queryParameters != nil {
+		opts = append(opts, client.WithUserDeleteQueryParameters(queryParameters))
+	}
+
+	if _, err := zoomClient.Users.Delete(context.Background(), *userID, opts...); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(c.stdout, "user %s deleted\n", *userID)
+	return nil
 }

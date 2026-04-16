@@ -35,16 +35,25 @@ Usage:
   go run ./cmd/go-zoom <command> [subcommand] [flags]
 
 Commands:
-  auth                     Authentication helpers (SDK auth options)
-  users get|create         Get/list users or create a user
-  meetings get|create      Get/list meetings or create a meeting
-  meetings summary get     Get one meeting summary or list summaries
-  phone call-history get   Get account/user/single call history
-  phone recordings get     Get account/user/call recordings
+  auth                                  Authentication helpers (SDK auth options)
+  users get|create|update|delete        Manage Zoom users
+  meetings get|create|update|delete     Manage Zoom meetings
+  meetings summary get|delete           Get/list or delete AI meeting summaries
+  phone call-history get                Get account/user/single call history
+  phone call-history add-client-code    Tag a call log with a client code
+  phone call-history delete             Delete a user's call log entry
+  phone call-history call-element get   Fetch a call element by ID
+  phone call-history ai-summary get     Fetch an AI call summary
+  phone recordings get                  Get account/user/call recordings
   phone recordings download-recording   Download a recording file
   phone recordings download-transcript  Download transcript JSON
-  phone settings get       Get account phone settings
-  phone users get          Get one phone user or list phone users
+  phone recordings delete               Permanently delete a recording
+  phone recordings enable-auto-delete   Enable auto-delete on a recording
+  phone recordings disable-auto-delete  Disable auto-delete on a recording
+  phone recordings recover              Recover a recording from the trash
+  phone settings get|update             Get or patch account phone settings
+  phone users get                       Get one phone user or list phone users
+  phone users profile-settings get      Get a phone user's profile settings
 
 Use "<command> --help" for command-specific flags.`)
 }

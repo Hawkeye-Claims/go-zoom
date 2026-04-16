@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/Hawkeye-Claims/go-zoom/zoom/client"
@@ -14,7 +15,7 @@ import (
 // runPhone dispatches phone subcommands.
 func (c *cli) runPhone(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone commands: call-history get, recordings get|download-recording|download-transcript, settings get, users get")
+		fmt.Fprintln(c.stderr, "phone commands: call-history, recordings, settings, users")
 		return nil
 	}
 
@@ -28,23 +29,41 @@ func (c *cli) runPhone(args []string) error {
 	case "users":
 		return c.runPhoneUsers(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "phone commands: call-history get, recordings get|download-recording|download-transcript, settings get, users get")
+		fmt.Fprintln(c.stderr, "phone commands: call-history, recordings, settings, users")
 		return nil
 	default:
 		return fmt.Errorf("unknown phone command %q", args[0])
 	}
 }
 
-// runPhoneCallHistory fetches account, user, or UUID-targeted call history.
+// runPhoneCallHistory dispatches phone call-history subcommands.
 func (c *cli) runPhoneCallHistory(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone call-history commands: get")
+		fmt.Fprintln(c.stderr, "phone call-history commands: get, add-client-code, delete, call-element get, ai-summary get")
 		return nil
 	}
-	if args[0] != "get" {
+
+	switch args[0] {
+	case "get":
+		return c.runPhoneCallHistoryGet(args[1:])
+	case "add-client-code":
+		return c.runPhoneCallHistoryAddClientCode(args[1:])
+	case "delete":
+		return c.runPhoneCallHistoryDelete(args[1:])
+	case "call-element":
+		return c.runPhoneCallHistoryCallElement(args[1:])
+	case "ai-summary":
+		return c.runPhoneCallHistoryAICallSummary(args[1:])
+	case "help", "--help", "-h":
+		fmt.Fprintln(c.stderr, "phone call-history commands: get, add-client-code, delete, call-element get, ai-summary get")
+		return nil
+	default:
 		return fmt.Errorf("unknown phone call-history command %q", args[0])
 	}
+}
 
+// runPhoneCallHistoryGet fetches account, user, or UUID-targeted call history.
+func (c *cli) runPhoneCallHistoryGet(args []string) error {
 	fs := flag.NewFlagSet("phone call-history get", flag.ContinueOnError)
 	fs.SetOutput(c.stderr)
 
@@ -53,7 +72,7 @@ func (c *cli) runPhoneCallHistory(args []string) error {
 	userID := fs.String("user-id", "", "User ID")
 	queryJSON := fs.String("query-json", "", "Inline JSON object for optional get query parameters")
 	queryJSONFile := fs.String("query-json-file", "", "Path to JSON file for optional get query parameters")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := fs.Parse(args); err != nil {
 		return err
 	}
 	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
@@ -95,10 +114,180 @@ func (c *cli) runPhoneCallHistory(args []string) error {
 	return c.writeJSON(history)
 }
 
+// runPhoneCallHistoryAddClientCode tags a call log entry with a client code.
+func (c *cli) runPhoneCallHistoryAddClientCode(args []string) error {
+	fs := flag.NewFlagSet("phone call-history add-client-code", flag.ContinueOnError)
+	fs.SetOutput(c.stderr)
+
+	cfg := c.bindClientFlags(fs, true, true)
+	callLogID := fs.String("call-log-id", "", "Call log ID (required)")
+	clientCode := fs.String("client-code", "", "Client code to associate (required)")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
+		return err
+	}
+	if *callLogID == "" {
+		return errors.New("--call-log-id is required")
+	}
+	if *clientCode == "" {
+		return errors.New("--client-code is required")
+	}
+
+	zoomClient, err := c.newServiceClient(cfg)
+	if err != nil {
+		return err
+	}
+	client.NewPhoneService(zoomClient)
+
+	if _, err := zoomClient.Phone.CallHistory.AddClientCode(context.Background(), *callLogID, *clientCode); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(c.stdout, "client code added to call log %s\n", *callLogID)
+	return nil
+}
+
+// runPhoneCallHistoryDelete removes a call log entry from a user's history.
+func (c *cli) runPhoneCallHistoryDelete(args []string) error {
+	fs := flag.NewFlagSet("phone call-history delete", flag.ContinueOnError)
+	fs.SetOutput(c.stderr)
+
+	cfg := c.bindClientFlags(fs, true, true)
+	userID := fs.String("user-id", "", "User ID (required)")
+	callLogID := fs.String("call-log-id", "", "Call log ID (required)")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
+		return err
+	}
+	if *userID == "" {
+		return errors.New("--user-id is required")
+	}
+	if *callLogID == "" {
+		return errors.New("--call-log-id is required")
+	}
+
+	zoomClient, err := c.newServiceClient(cfg)
+	if err != nil {
+		return err
+	}
+	client.NewPhoneService(zoomClient)
+
+	if _, err := zoomClient.Phone.CallHistory.DeleteUserCallHistory(context.Background(), *userID, *callLogID); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(c.stdout, "call log %s deleted from user %s\n", *callLogID, *userID)
+	return nil
+}
+
+// runPhoneCallHistoryCallElement dispatches call-element subcommands.
+func (c *cli) runPhoneCallHistoryCallElement(args []string) error {
+	if len(args) == 0 {
+		fmt.Fprintln(c.stderr, "phone call-history call-element commands: get")
+		return nil
+	}
+	switch args[0] {
+	case "get":
+		return c.runPhoneCallHistoryCallElementGet(args[1:])
+	case "help", "--help", "-h":
+		fmt.Fprintln(c.stderr, "phone call-history call-element commands: get")
+		return nil
+	default:
+		return fmt.Errorf("unknown phone call-history call-element command %q", args[0])
+	}
+}
+
+// runPhoneCallHistoryCallElementGet fetches a call element by ID.
+func (c *cli) runPhoneCallHistoryCallElementGet(args []string) error {
+	fs := flag.NewFlagSet("phone call-history call-element get", flag.ContinueOnError)
+	fs.SetOutput(c.stderr)
+
+	cfg := c.bindClientFlags(fs, true, true)
+	callElementID := fs.String("call-element-id", "", "Call element ID (required)")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
+		return err
+	}
+	if *callElementID == "" {
+		return errors.New("--call-element-id is required")
+	}
+
+	zoomClient, err := c.newServiceClient(cfg)
+	if err != nil {
+		return err
+	}
+	client.NewPhoneService(zoomClient)
+
+	callElement, _, err := zoomClient.Phone.CallHistory.GetCallElement(context.Background(), *callElementID)
+	if err != nil {
+		return err
+	}
+
+	return c.writeJSON(callElement)
+}
+
+// runPhoneCallHistoryAICallSummary dispatches ai-summary subcommands.
+func (c *cli) runPhoneCallHistoryAICallSummary(args []string) error {
+	if len(args) == 0 {
+		fmt.Fprintln(c.stderr, "phone call-history ai-summary commands: get")
+		return nil
+	}
+	switch args[0] {
+	case "get":
+		return c.runPhoneCallHistoryAICallSummaryGet(args[1:])
+	case "help", "--help", "-h":
+		fmt.Fprintln(c.stderr, "phone call-history ai-summary commands: get")
+		return nil
+	default:
+		return fmt.Errorf("unknown phone call-history ai-summary command %q", args[0])
+	}
+}
+
+// runPhoneCallHistoryAICallSummaryGet fetches an AI call summary.
+func (c *cli) runPhoneCallHistoryAICallSummaryGet(args []string) error {
+	fs := flag.NewFlagSet("phone call-history ai-summary get", flag.ContinueOnError)
+	fs.SetOutput(c.stderr)
+
+	cfg := c.bindClientFlags(fs, true, true)
+	userID := fs.String("user-id", "", "User ID (required)")
+	summaryID := fs.String("ai-call-summary-id", "", "AI call summary ID (required)")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
+		return err
+	}
+	if *userID == "" {
+		return errors.New("--user-id is required")
+	}
+	if *summaryID == "" {
+		return errors.New("--ai-call-summary-id is required")
+	}
+
+	zoomClient, err := c.newServiceClient(cfg)
+	if err != nil {
+		return err
+	}
+	client.NewPhoneService(zoomClient)
+
+	summary, _, err := zoomClient.Phone.CallHistory.GetAICallSummary(context.Background(), *userID, *summaryID)
+	if err != nil {
+		return err
+	}
+
+	return c.writeJSON(summary)
+}
+
 // runPhoneRecordings dispatches phone recordings commands.
 func (c *cli) runPhoneRecordings(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone recordings commands: get, download-recording, download-transcript")
+		fmt.Fprintln(c.stderr, "phone recordings commands: get, download-recording, download-transcript, delete, enable-auto-delete, disable-auto-delete, recover")
 		return nil
 	}
 
@@ -109,8 +298,16 @@ func (c *cli) runPhoneRecordings(args []string) error {
 		return c.runPhoneRecordingsDownloadRecording(args[1:])
 	case "download-transcript":
 		return c.runPhoneRecordingsDownloadTranscript(args[1:])
+	case "delete":
+		return c.runPhoneRecordingsDelete(args[1:])
+	case "enable-auto-delete":
+		return c.runPhoneRecordingsEnableAutoDelete(args[1:])
+	case "disable-auto-delete":
+		return c.runPhoneRecordingsDisableAutoDelete(args[1:])
+	case "recover":
+		return c.runPhoneRecordingsRecover(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "phone recordings commands: get, download-recording, download-transcript")
+		fmt.Fprintln(c.stderr, "phone recordings commands: get, download-recording, download-transcript, delete, enable-auto-delete, disable-auto-delete, recover")
 		return nil
 	default:
 		return fmt.Errorf("unknown phone recordings command %q", args[0])
@@ -262,21 +459,33 @@ func (c *cli) runPhoneRecordingsDownloadTranscript(args []string) error {
 	return nil
 }
 
-// runPhoneSettings fetches account-level phone settings.
+// runPhoneSettings dispatches phone settings commands.
 func (c *cli) runPhoneSettings(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone settings commands: get")
+		fmt.Fprintln(c.stderr, "phone settings commands: get, update")
 		return nil
 	}
-	if args[0] != "get" {
+
+	switch args[0] {
+	case "get":
+		return c.runPhoneSettingsGet(args[1:])
+	case "update":
+		return c.runPhoneSettingsUpdate(args[1:])
+	case "help", "--help", "-h":
+		fmt.Fprintln(c.stderr, "phone settings commands: get, update")
+		return nil
+	default:
 		return fmt.Errorf("unknown phone settings command %q", args[0])
 	}
+}
 
+// runPhoneSettingsGet fetches account-level phone settings.
+func (c *cli) runPhoneSettingsGet(args []string) error {
 	fs := flag.NewFlagSet("phone settings get", flag.ContinueOnError)
 	fs.SetOutput(c.stderr)
 
 	cfg := c.bindClientFlags(fs, true, true)
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := fs.Parse(args); err != nil {
 		return err
 	}
 	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
@@ -297,16 +506,83 @@ func (c *cli) runPhoneSettings(args []string) error {
 	return c.writeJSON(settings)
 }
 
-// runPhoneUsers fetches one phone user or lists phone users.
-func (c *cli) runPhoneUsers(args []string) error {
-	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone users commands: get")
-		return nil
+// phoneSettingsUpdateInput mirrors client.SettingsAttributes but with JSON
+// tags so it can be supplied via --json or --json-file. Each field is a
+// pointer so that omitted fields are not sent in the PATCH request.
+type phoneSettingsUpdateInput struct {
+	BillingAccountId       *string `json:"billing_account_id,omitempty"`
+	BYOC                   *bool   `json:"byoc,omitempty"`
+	MultipleSites          *bool   `json:"multiple_sites,omitempty"`
+	SiteCode               *bool   `json:"site_code,omitempty"`
+	ShortExtensionLength   *int    `json:"short_extension_length,omitempty"`
+	ShowDeviceIPForCallLog *bool   `json:"show_device_ip_for_call_log,omitempty"`
+}
+
+// runPhoneSettingsUpdate patches account-level phone settings.
+func (c *cli) runPhoneSettingsUpdate(args []string) error {
+	fs := flag.NewFlagSet("phone settings update", flag.ContinueOnError)
+	fs.SetOutput(c.stderr)
+
+	cfg := c.bindClientFlags(fs, true, true)
+	jsonInput := fs.String("json", "", "Inline JSON object for phone settings attributes")
+	jsonFile := fs.String("json-file", "", "Path to JSON file for phone settings attributes")
+	if err := fs.Parse(args); err != nil {
+		return err
 	}
-	if args[0] != "get" {
-		return fmt.Errorf("unknown phone users command %q", args[0])
+	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
+		return err
 	}
 
+	input, err := readJSONInput[phoneSettingsUpdateInput](*jsonInput, *jsonFile)
+	if err != nil {
+		return err
+	}
+
+	attrs := &client.SettingsAttributes{
+		BillingAccountId:       input.BillingAccountId,
+		BYOC:                   input.BYOC,
+		MultipleSites:          input.MultipleSites,
+		SiteCode:               input.SiteCode,
+		ShortExtensionLength:   input.ShortExtensionLength,
+		ShowDeviceIPForCallLog: input.ShowDeviceIPForCallLog,
+	}
+
+	zoomClient, err := c.newServiceClient(cfg)
+	if err != nil {
+		return err
+	}
+	client.NewPhoneService(zoomClient)
+
+	if _, err := zoomClient.Phone.Settings.Update(context.Background(), attrs); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintln(c.stdout, "phone settings updated")
+	return nil
+}
+
+// runPhoneUsers dispatches phone users commands.
+func (c *cli) runPhoneUsers(args []string) error {
+	if len(args) == 0 {
+		fmt.Fprintln(c.stderr, "phone users commands: get, profile-settings get")
+		return nil
+	}
+
+	switch args[0] {
+	case "get":
+		return c.runPhoneUsersGet(args[1:])
+	case "profile-settings":
+		return c.runPhoneUsersProfileSettings(args[1:])
+	case "help", "--help", "-h":
+		fmt.Fprintln(c.stderr, "phone users commands: get, profile-settings get")
+		return nil
+	default:
+		return fmt.Errorf("unknown phone users command %q", args[0])
+	}
+}
+
+// runPhoneUsersGet fetches one phone user or lists phone users.
+func (c *cli) runPhoneUsersGet(args []string) error {
 	fs := flag.NewFlagSet("phone users get", flag.ContinueOnError)
 	fs.SetOutput(c.stderr)
 
@@ -314,7 +590,7 @@ func (c *cli) runPhoneUsers(args []string) error {
 	userID := fs.String("user-id", "", "Phone user ID")
 	queryJSON := fs.String("query-json", "", "Inline JSON object for optional get query parameters")
 	queryJSONFile := fs.String("query-json-file", "", "Path to JSON file for optional get query parameters")
-	if err := fs.Parse(args[1:]); err != nil {
+	if err := fs.Parse(args); err != nil {
 		return err
 	}
 	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
@@ -350,4 +626,123 @@ func (c *cli) runPhoneUsers(args []string) error {
 	}
 
 	return c.writeJSON(users)
+}
+
+// runPhoneUsersProfileSettings dispatches profile-settings commands.
+func (c *cli) runPhoneUsersProfileSettings(args []string) error {
+	if len(args) == 0 {
+		fmt.Fprintln(c.stderr, "phone users profile-settings commands: get")
+		return nil
+	}
+	switch args[0] {
+	case "get":
+		return c.runPhoneUsersProfileSettingsGet(args[1:])
+	case "help", "--help", "-h":
+		fmt.Fprintln(c.stderr, "phone users profile-settings commands: get")
+		return nil
+	default:
+		return fmt.Errorf("unknown phone users profile-settings command %q", args[0])
+	}
+}
+
+// runPhoneUsersProfileSettingsGet fetches phone profile settings for a user.
+func (c *cli) runPhoneUsersProfileSettingsGet(args []string) error {
+	fs := flag.NewFlagSet("phone users profile-settings get", flag.ContinueOnError)
+	fs.SetOutput(c.stderr)
+
+	cfg := c.bindClientFlags(fs, true, true)
+	userID := fs.String("user-id", "", "Phone user ID (required)")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
+		return err
+	}
+	if *userID == "" {
+		return errors.New("--user-id is required")
+	}
+
+	zoomClient, err := c.newServiceClient(cfg)
+	if err != nil {
+		return err
+	}
+	client.NewPhoneService(zoomClient)
+
+	settings, _, err := zoomClient.Phone.Users.GetProfileSetting(context.Background(), *userID)
+	if err != nil {
+		return err
+	}
+
+	return c.writeJSON(settings)
+}
+
+// runPhoneRecordingsDelete permanently removes a recording.
+func (c *cli) runPhoneRecordingsDelete(args []string) error {
+	return c.runPhoneRecordingSimpleCmd(args, "phone recordings delete", "recording-id", "Recording ID (required)",
+		func(zc *client.Client, recordingID string) (*http.Response, error) {
+			return zc.Phone.Recordings.Delete(context.Background(), recordingID)
+		}, "recording %s deleted")
+}
+
+// runPhoneRecordingsEnableAutoDelete enables auto-delete on a recording.
+func (c *cli) runPhoneRecordingsEnableAutoDelete(args []string) error {
+	return c.runPhoneRecordingSimpleCmd(args, "phone recordings enable-auto-delete", "recording-id", "Recording ID (required)",
+		func(zc *client.Client, recordingID string) (*http.Response, error) {
+			return zc.Phone.Recordings.EnableAutoDelete(context.Background(), recordingID)
+		}, "auto-delete enabled on recording %s")
+}
+
+// runPhoneRecordingsDisableAutoDelete disables auto-delete on a recording.
+func (c *cli) runPhoneRecordingsDisableAutoDelete(args []string) error {
+	return c.runPhoneRecordingSimpleCmd(args, "phone recordings disable-auto-delete", "recording-id", "Recording ID (required)",
+		func(zc *client.Client, recordingID string) (*http.Response, error) {
+			return zc.Phone.Recordings.DisableAutoDelete(context.Background(), recordingID)
+		}, "auto-delete disabled on recording %s")
+}
+
+// runPhoneRecordingsRecover restores a recording from the trash.
+func (c *cli) runPhoneRecordingsRecover(args []string) error {
+	return c.runPhoneRecordingSimpleCmd(args, "phone recordings recover", "recording-id", "Recording ID (required)",
+		func(zc *client.Client, recordingID string) (*http.Response, error) {
+			return zc.Phone.Recordings.Recover(context.Background(), recordingID)
+		}, "recording %s recovered")
+}
+
+// runPhoneRecordingSimpleCmd is a shared helper for recording commands that
+// take a single ID flag and return only a status message on success.
+func (c *cli) runPhoneRecordingSimpleCmd(
+	args []string,
+	cmdName string,
+	idFlag string,
+	idFlagHelp string,
+	invoke func(*client.Client, string) (*http.Response, error),
+	successFormat string,
+) error {
+	fs := flag.NewFlagSet(cmdName, flag.ContinueOnError)
+	fs.SetOutput(c.stderr)
+
+	cfg := c.bindClientFlags(fs, true, true)
+	id := fs.String(idFlag, "", idFlagHelp)
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if err := ensureNoUnexpectedArgs(fs.Args()); err != nil {
+		return err
+	}
+	if *id == "" {
+		return fmt.Errorf("--%s is required", idFlag)
+	}
+
+	zoomClient, err := c.newServiceClient(cfg)
+	if err != nil {
+		return err
+	}
+	client.NewPhoneService(zoomClient)
+
+	if _, err := invoke(zoomClient, *id); err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(c.stdout, successFormat+"\n", *id)
+	return nil
 }
