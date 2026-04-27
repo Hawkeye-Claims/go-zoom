@@ -457,6 +457,8 @@ type CallRecording struct {
 	CallID string `json:"call_id,omitempty"`
 	// CallLogID is the call log ID associated with this recording.
 	CallLogID string `json:"call_log_id,omitempty"`
+	// CallHistoryID is the call history ID associated with this recording
+	CallHistoryID string `json:"call_history_id"`
 	// CallElementID is the call element ID associated with this recording.
 	CallElementID string `json:"call_element_id,omitempty"`
 	// CalleeName is the display name of the callee.
