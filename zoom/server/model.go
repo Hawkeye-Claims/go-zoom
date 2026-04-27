@@ -107,3 +107,15 @@ type PhoneCallHistoryEvent struct {
 	// UserID is the Zoom user ID associated with the event.
 	UserID string `json:"user_id"`
 }
+
+// type CallRecordingEvent is the payload type for phone call recording
+// webhook events (e.g. "phone.recording_transcript_completed")
+type CallRecordingEvent struct {
+	// AccountID is the Zoom account associated with the event.
+	AccountID string `json:"account_id"`
+	// Object contains the list of call recording entries associated with
+	// the event
+	Object struct {
+		Recordings []models.CallRecording `json:"recordings"`
+	} `json:"object"`
+}
