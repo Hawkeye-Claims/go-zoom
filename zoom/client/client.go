@@ -562,7 +562,7 @@ var ErrInvalidOAuthState = errors.New("invalid oauth state")
 // ExchangeAuthorizationCode validates the OAuth state, exchanges an
 // authorization code for tokens, and stores the resulting access and refresh
 // tokens in the configured TokenMutex.
-func (c *Client) ExchangeAuthorizationCode(ctx context.Context, code string, state string) error {
+func (c *Client) ExchangeAuthorizationCode(ctx context.Context, code string, state string) (err error) {
 	if code == "" {
 		return errors.New("authorization code is required")
 	}
@@ -573,7 +573,16 @@ func (c *Client) ExchangeAuthorizationCode(ctx context.Context, code string, sta
 	if err := c.tokenMutex.Lock(ctx); err != nil {
 		return fmt.Errorf("Error locking token mutex: %w", err)
 	}
-	defer c.tokenMutex.Unlock(ctx)
+	defer func() {
+		if unlockErr := c.tokenMutex.Unlock(ctx); unlockErr != nil {
+			if err != nil {
+				err = errors.Join(err, fmt.Errorf("Error unlocking token mutex: %w", unlockErr))
+				return
+			}
+
+			err = fmt.Errorf("Error unlocking token mutex: %w", unlockErr)
+		}
+	}()
 
 	token, err := c.oauthConf.Exchange(ctx, code)
 	if err != nil {
