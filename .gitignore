@@ -5,3 +5,4 @@ main.go
 .opencode
 .ignore
 /go-zoom
+/dist
