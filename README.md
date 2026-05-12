@@ -4,20 +4,34 @@ A lightweight [Zoom API](https://marketplace.zoom.us/docs/api-reference/introduc
 
 ## Installation
 
+### SDK
+
 ```sh
 go get github.com/Hawkeye-Claims/go-zoom
 ```
 
-## CLI Wrapper (No External CLI Dependencies)
+### CLI
 
 A lightweight CLI wrapper is included under `cmd/go-zoom` and uses only the Go standard library for command parsing and output formatting.
 
-Prebuilt CLI archives are attached to each GitHub release for Linux, macOS, and Windows on `amd64` and `arm64`.
+You can use the CLI in two ways:
 
-Run it with:
+**Option 1: Install the prebuilt CLI**
+
+Prebuilt CLI binaries are attached to each [GitHub release](https://github.com/Hawkeye-Claims/go-zoom/releases) for Linux, macOS, and Windows on `amd64` and `arm64`. Download a release and add it to your `$PATH`.
+
+**Option 2: Build from source**
+
+Build and run the CLI directly from the repository:
 
 ```sh
 go run ./cmd/go-zoom <command> [subcommand] [flags]
+```
+
+Or install it globally with:
+
+```sh
+go install github.com/Hawkeye-Claims/go-zoom/cmd/go-zoom@latest
 ```
 
 ### Authentication Commands
