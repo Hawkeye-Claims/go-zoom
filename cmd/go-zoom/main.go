@@ -22,7 +22,7 @@ type cli struct {
 func main() {
 	c := &cli{stdout: os.Stdout, stderr: os.Stderr}
 	if err := c.run(os.Args[1:]); err != nil {
-		fmt.Fprintf(c.stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(c.stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }

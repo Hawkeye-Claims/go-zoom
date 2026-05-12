@@ -29,7 +29,7 @@ func (c *cli) run(args []string) error {
 
 // printRootUsage prints the root CLI usage text.
 func (c *cli) printRootUsage() {
-	fmt.Fprintln(c.stderr, `go-zoom CLI wrapper
+	_, _ = fmt.Fprintln(c.stderr, `go-zoom CLI wrapper
 
 Usage:
   go run ./cmd/go-zoom <command> [subcommand] [flags]

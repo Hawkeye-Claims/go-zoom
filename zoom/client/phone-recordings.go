@@ -118,7 +118,7 @@ func (r *PhoneRecordingsService) Get(ctx context.Context, opts ...CallRecordingG
 		counter++
 	}
 	if counter > 1 {
-		return nil, nil, errors.New("Only one of WithRecordingUserId, WithRecordingCallId, or WithCallRecordingQueryParameters can be used")
+		return nil, nil, errors.New("only one of WithRecordingUserId, WithRecordingCallId, or WithCallRecordingQueryParameters can be used")
 	}
 
 	if options.callId != "" {
@@ -152,17 +152,14 @@ func (r *PhoneRecordingsService) Get(ctx context.Context, opts ...CallRecordingG
 		type callRecordingPageQuery struct {
 			*PaginationOptions
 		}
-		for {
-			if queryResponse.NextPageToken == "" {
-				break
-			}
+		for queryResponse.NextPageToken != "" {
 			nextPageToken := queryResponse.NextPageToken
 			pageQuery := &callRecordingPageQuery{
 				PaginationOptions: &PaginationOptions{
 					NextPageToken: &nextPageToken,
 				},
 			}
-			res, err := r.client.request(ctx, http.MethodGet, endpoint, pageQuery, nil, queryResponse)
+			res, err = r.client.request(ctx, http.MethodGet, endpoint, pageQuery, nil, queryResponse)
 			if err != nil {
 				return nil, res, fmt.Errorf("Error making request: %w", err)
 			}
@@ -185,10 +182,7 @@ func (r *PhoneRecordingsService) Get(ctx context.Context, opts ...CallRecordingG
 		*CallRecordingQueryParameters
 		*PaginationOptions
 	}
-	for {
-		if queryResponse.NextPageToken == "" {
-			break
-		}
+	for queryResponse.NextPageToken != "" {
 		nextPageToken := queryResponse.NextPageToken
 		pageQuery := &callRecordingPageQuery{
 			CallRecordingQueryParameters: options.queryParameters,
@@ -196,7 +190,7 @@ func (r *PhoneRecordingsService) Get(ctx context.Context, opts ...CallRecordingG
 				NextPageToken: &nextPageToken,
 			},
 		}
-		res, err := r.client.request(ctx, http.MethodGet, endpoint, pageQuery, nil, queryResponse)
+		res, err = r.client.request(ctx, http.MethodGet, endpoint, pageQuery, nil, queryResponse)
 		if err != nil {
 			return nil, res, fmt.Errorf("Error making request: %w", err)
 		}
@@ -215,7 +209,7 @@ func (r *PhoneRecordingsService) DownloadCallRecording(ctx context.Context, file
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusOK, res.StatusCode)
 	}
 	return res, nil
 }
@@ -230,7 +224,7 @@ func (r *PhoneRecordingsService) DownloadCallTranscript(ctx context.Context, rec
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return nil, res, fmt.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
+		return nil, res, fmt.Errorf("expected status code %d, got %d", http.StatusOK, res.StatusCode)
 	}
 	return &transcript, res, nil
 }
@@ -242,7 +236,7 @@ func (r *PhoneRecordingsService) Delete(ctx context.Context, recordingId string)
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }
@@ -259,7 +253,7 @@ func (r *PhoneRecordingsService) EnableAutoDelete(ctx context.Context, recording
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }
@@ -276,7 +270,7 @@ func (r *PhoneRecordingsService) DisableAutoDelete(ctx context.Context, recordin
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }
@@ -292,7 +286,7 @@ func (r *PhoneRecordingsService) Recover(ctx context.Context, recordingId string
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }

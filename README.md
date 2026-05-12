@@ -12,6 +12,8 @@ go get github.com/Hawkeye-Claims/go-zoom
 
 A lightweight CLI wrapper is included under `cmd/go-zoom` and uses only the Go standard library for command parsing and output formatting.
 
+Prebuilt CLI archives are attached to each GitHub release for Linux, macOS, and Windows on `amd64` and `arm64`.
+
 Run it with:
 
 ```sh

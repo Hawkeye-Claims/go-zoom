@@ -15,7 +15,7 @@ import (
 // runPhone dispatches phone subcommands.
 func (c *cli) runPhone(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone commands: call-history, recordings, settings, users")
+		_, _ = fmt.Fprintln(c.stderr, "phone commands: call-history, recordings, settings, users")
 		return nil
 	}
 
@@ -29,7 +29,7 @@ func (c *cli) runPhone(args []string) error {
 	case "users":
 		return c.runPhoneUsers(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "phone commands: call-history, recordings, settings, users")
+		_, _ = fmt.Fprintln(c.stderr, "phone commands: call-history, recordings, settings, users")
 		return nil
 	default:
 		return fmt.Errorf("unknown phone command %q", args[0])
@@ -39,7 +39,7 @@ func (c *cli) runPhone(args []string) error {
 // runPhoneCallHistory dispatches phone call-history subcommands.
 func (c *cli) runPhoneCallHistory(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone call-history commands: get, add-client-code, delete, call-element get, ai-summary get")
+		_, _ = fmt.Fprintln(c.stderr, "phone call-history commands: get, add-client-code, delete, call-element get, ai-summary get")
 		return nil
 	}
 
@@ -55,7 +55,7 @@ func (c *cli) runPhoneCallHistory(args []string) error {
 	case "ai-summary":
 		return c.runPhoneCallHistoryAICallSummary(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "phone call-history commands: get, add-client-code, delete, call-element get, ai-summary get")
+		_, _ = fmt.Fprintln(c.stderr, "phone call-history commands: get, add-client-code, delete, call-element get, ai-summary get")
 		return nil
 	default:
 		return fmt.Errorf("unknown phone call-history command %q", args[0])
@@ -187,14 +187,14 @@ func (c *cli) runPhoneCallHistoryDelete(args []string) error {
 // runPhoneCallHistoryCallElement dispatches call-element subcommands.
 func (c *cli) runPhoneCallHistoryCallElement(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone call-history call-element commands: get")
+		_, _ = fmt.Fprintln(c.stderr, "phone call-history call-element commands: get")
 		return nil
 	}
 	switch args[0] {
 	case "get":
 		return c.runPhoneCallHistoryCallElementGet(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "phone call-history call-element commands: get")
+		_, _ = fmt.Fprintln(c.stderr, "phone call-history call-element commands: get")
 		return nil
 	default:
 		return fmt.Errorf("unknown phone call-history call-element command %q", args[0])
@@ -235,14 +235,14 @@ func (c *cli) runPhoneCallHistoryCallElementGet(args []string) error {
 // runPhoneCallHistoryAICallSummary dispatches ai-summary subcommands.
 func (c *cli) runPhoneCallHistoryAICallSummary(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone call-history ai-summary commands: get")
+		_, _ = fmt.Fprintln(c.stderr, "phone call-history ai-summary commands: get")
 		return nil
 	}
 	switch args[0] {
 	case "get":
 		return c.runPhoneCallHistoryAICallSummaryGet(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "phone call-history ai-summary commands: get")
+		_, _ = fmt.Fprintln(c.stderr, "phone call-history ai-summary commands: get")
 		return nil
 	default:
 		return fmt.Errorf("unknown phone call-history ai-summary command %q", args[0])
@@ -287,7 +287,7 @@ func (c *cli) runPhoneCallHistoryAICallSummaryGet(args []string) error {
 // runPhoneRecordings dispatches phone recordings commands.
 func (c *cli) runPhoneRecordings(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone recordings commands: get, download-recording, download-transcript, delete, enable-auto-delete, disable-auto-delete, recover")
+		_, _ = fmt.Fprintln(c.stderr, "phone recordings commands: get, download-recording, download-transcript, delete, enable-auto-delete, disable-auto-delete, recover")
 		return nil
 	}
 
@@ -307,7 +307,7 @@ func (c *cli) runPhoneRecordings(args []string) error {
 	case "recover":
 		return c.runPhoneRecordingsRecover(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "phone recordings commands: get, download-recording, download-transcript, delete, enable-auto-delete, disable-auto-delete, recover")
+		_, _ = fmt.Fprintln(c.stderr, "phone recordings commands: get, download-recording, download-transcript, delete, enable-auto-delete, disable-auto-delete, recover")
 		return nil
 	default:
 		return fmt.Errorf("unknown phone recordings command %q", args[0])
@@ -462,7 +462,7 @@ func (c *cli) runPhoneRecordingsDownloadTranscript(args []string) error {
 // runPhoneSettings dispatches phone settings commands.
 func (c *cli) runPhoneSettings(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone settings commands: get, update")
+		_, _ = fmt.Fprintln(c.stderr, "phone settings commands: get, update")
 		return nil
 	}
 
@@ -472,7 +472,7 @@ func (c *cli) runPhoneSettings(args []string) error {
 	case "update":
 		return c.runPhoneSettingsUpdate(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "phone settings commands: get, update")
+		_, _ = fmt.Fprintln(c.stderr, "phone settings commands: get, update")
 		return nil
 	default:
 		return fmt.Errorf("unknown phone settings command %q", args[0])
@@ -564,7 +564,7 @@ func (c *cli) runPhoneSettingsUpdate(args []string) error {
 // runPhoneUsers dispatches phone users commands.
 func (c *cli) runPhoneUsers(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone users commands: get, profile-settings get")
+		_, _ = fmt.Fprintln(c.stderr, "phone users commands: get, profile-settings get")
 		return nil
 	}
 
@@ -574,7 +574,7 @@ func (c *cli) runPhoneUsers(args []string) error {
 	case "profile-settings":
 		return c.runPhoneUsersProfileSettings(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "phone users commands: get, profile-settings get")
+		_, _ = fmt.Fprintln(c.stderr, "phone users commands: get, profile-settings get")
 		return nil
 	default:
 		return fmt.Errorf("unknown phone users command %q", args[0])
@@ -631,14 +631,14 @@ func (c *cli) runPhoneUsersGet(args []string) error {
 // runPhoneUsersProfileSettings dispatches profile-settings commands.
 func (c *cli) runPhoneUsersProfileSettings(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "phone users profile-settings commands: get")
+		_, _ = fmt.Fprintln(c.stderr, "phone users profile-settings commands: get")
 		return nil
 	}
 	switch args[0] {
 	case "get":
 		return c.runPhoneUsersProfileSettingsGet(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "phone users profile-settings commands: get")
+		_, _ = fmt.Fprintln(c.stderr, "phone users profile-settings commands: get")
 		return nil
 	default:
 		return fmt.Errorf("unknown phone users profile-settings command %q", args[0])

@@ -88,7 +88,7 @@ func NewWebhookServer(listenAddr, webhookPath, secretToken string, opts ...Handl
 // before processing, and responds to URL validation challenges automatically.
 func (s *WebhookServer) processEvent(w http.ResponseWriter, r *http.Request) {
 	var header webhookHeader
-	defer r.Body.Close()
+	defer func() { _ = r.Body.Close() }()
 
 	requestTimestamp := r.Header.Get("x-zm-request-timestamp")
 	requestSignature := r.Header.Get("x-zm-signature")

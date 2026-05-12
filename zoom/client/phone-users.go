@@ -124,10 +124,7 @@ func (u *PhoneUsersService) Get(ctx context.Context, opts ...PhoneUserGetOptions
 		*PhoneUserQueryParameters
 		*PaginationOptions
 	}
-	for {
-		if queryResponse.NextPageToken == "" {
-			break
-		}
+	for queryResponse.NextPageToken != "" {
 		nextPageToken := queryResponse.NextPageToken
 		pageQuery := &phoneUserPageQuery{
 			PhoneUserQueryParameters: options.queryParameters,

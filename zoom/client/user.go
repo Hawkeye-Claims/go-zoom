@@ -179,7 +179,7 @@ func (u *UsersService) Get(ctx context.Context, opts ...UserGetOptions) ([]*mode
 	}
 
 	if options.queryParameters != nil && options.listQueryParameters != nil {
-		return nil, nil, errors.New("Cannot use both UserQueryParameters and ListUserQueryParameters at the same time")
+		return nil, nil, errors.New("cannot use both UserQueryParameters and ListUserQueryParameters at the same time")
 	}
 
 	query := any(nil)
@@ -220,10 +220,7 @@ func (u *UsersService) Get(ctx context.Context, opts ...UserGetOptions) ([]*mode
 		*ListUserQueryParameters
 		*PaginationOptions
 	}
-	for {
-		if queryResponse.NextPageToken == "" {
-			break
-		}
+	for queryResponse.NextPageToken != "" {
 		nextPageToken := queryResponse.NextPageToken
 		pageQuery := &usersListPageQuery{
 			ListUserQueryParameters: options.listQueryParameters,
@@ -253,7 +250,7 @@ type UserAttributes struct {
 	// DivisionIds lists the division IDs the user belongs to.
 	DivisionIds []string `json:"division_ids,omitempty"`
 	// Feature holds the user's feature entitlements.
-	Feature models.Feature `json:"feature"`
+	Feature *models.Feature `json:"feature,omitempty"`
 	// FirstName is the user's first name.
 	FirstName string `json:"first_name,omitempty"`
 	// LastName is the user's last name.
@@ -271,7 +268,7 @@ type UserAttributes struct {
 // the newly created user.
 func (u *UsersService) Create(ctx context.Context, action enums.UserCreateAction, userAttributes UserAttributes) (*models.User, *http.Response, error) {
 	if userAttributes.Email == "" || userAttributes.UserType == 0 {
-		return &models.User{}, nil, errors.New("Email and UserType are required fields")
+		return &models.User{}, nil, errors.New("email and UserType are required fields")
 	}
 	type body struct {
 		Action   enums.UserCreateAction `json:"action"`
@@ -289,7 +286,7 @@ func (u *UsersService) Create(ctx context.Context, action enums.UserCreateAction
 		return &models.User{}, res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusCreated {
-		return &models.User{}, res, fmt.Errorf("Expected status code %d, got %d", http.StatusCreated, res.StatusCode)
+		return &models.User{}, res, fmt.Errorf("expected status code %d, got %d", http.StatusCreated, res.StatusCode)
 	}
 	return &response, res, nil
 }
@@ -369,7 +366,7 @@ func (u *UsersService) Update(ctx context.Context, userId string, userAttributes
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }
@@ -386,7 +383,7 @@ func (u *UsersService) Delete(ctx context.Context, userId string, opts ...UserDe
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }

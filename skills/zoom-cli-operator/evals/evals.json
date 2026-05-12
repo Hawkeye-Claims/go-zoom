@@ -1,0 +1,23 @@
+{
+  "skill_name": "zoom-cli-operator",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Can you check my upcoming Zoom meetings for today using this repo? I already have the Zoom env vars set.",
+      "expected_output": "The agent validates or uses account-credentials auth, runs `go-zoom meetings get --user-id me` when the binary is available or falls back to `go run ./cmd/go-zoom meetings get --user-id me` from the repo, includes an appropriate query JSON filter for upcoming/date range if needed, and summarizes the meetings without exposing credentials.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Create a Zoom meeting tomorrow at 2pm UTC called Claims sync, 45 minutes, for my user. Use the CLI in this project.",
+      "expected_output": "The agent prepares a minimal meeting JSON payload with RFC3339 `start_time`, uses `go-zoom meetings create --user-id me --json` or `--json-file` when available with source-tree fallback, and summarizes the created meeting output. It does not suggest Zoom's separate global CLI.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I need the transcript for phone recording rec_abc123 saved as transcript.json. What command should we run?",
+      "expected_output": "The agent uses the phone recording transcript command: `go-zoom phone recordings download-transcript --recording-id rec_abc123 --output ./transcript.json` when available or the equivalent `go run ./cmd/go-zoom ...` source-tree command, notes that this is for Zoom Phone recording transcripts, and avoids claiming meeting transcript support if not available.",
+      "files": []
+    }
+  ]
+}

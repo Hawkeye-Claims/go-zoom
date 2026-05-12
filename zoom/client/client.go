@@ -318,7 +318,7 @@ func (c *Client) request(ctx context.Context, method string, path string, query 
 	if err != nil {
 		return nil, fmt.Errorf("Error making HTTP request: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode > http.StatusIMUsed {
 		if res.StatusCode == http.StatusUnauthorized {
@@ -334,7 +334,7 @@ func (c *Client) request(ctx context.Context, method string, path string, query 
 			return res, fmt.Errorf("Error decoding error response body: %w", err)
 		}
 
-		return res, fmt.Errorf("Zoom API error (status %d): %v", res.StatusCode, errRes)
+		return res, fmt.Errorf("zoom API error (status %d): %v", res.StatusCode, errRes)
 	}
 
 	if out != nil {
@@ -380,7 +380,7 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 	case "account_credentials":
 
 	default:
-		return "", time.Time{}, fmt.Errorf("Unsupported grant type: %s", c.grantType)
+		return "", time.Time{}, fmt.Errorf("unsupported grant type: %s", c.grantType)
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s?%s", zoomTokenURL, query.Encode()), nil)
 	if err != nil {
@@ -394,7 +394,7 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 	if err != nil {
 		return "", time.Time{}, fmt.Errorf("Error doing HTTP request: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != http.StatusOK {
 		errRes := &struct {
@@ -406,7 +406,7 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 
 		err = json.NewDecoder(res.Body).Decode(errRes)
 		if err != nil {
-			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+			return "", time.Time{}, fmt.Errorf("received non-200 status code: %d", res.StatusCode)
 		}
 
 		msg := errRes.ErrorDescription
@@ -421,10 +421,10 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 		}
 
 		if msg == "" {
-			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+			return "", time.Time{}, fmt.Errorf("received non-200 status code: %d", res.StatusCode)
 		}
 
-		return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d: %s", res.StatusCode, msg)
+		return "", time.Time{}, fmt.Errorf("received non-200 status code: %d: %s", res.StatusCode, msg)
 	}
 
 	authRes := &authResponse{}
@@ -465,7 +465,7 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 	if err != nil {
 		return "", time.Time{}, fmt.Errorf("Error doing HTTP request: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != http.StatusOK {
 		errRes := &struct {
@@ -477,7 +477,7 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 
 		err = json.NewDecoder(res.Body).Decode(errRes)
 		if err != nil {
-			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+			return "", time.Time{}, fmt.Errorf("received non-200 status code: %d", res.StatusCode)
 		}
 
 		msg := errRes.ErrorDescription
@@ -492,10 +492,10 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 		}
 
 		if msg == "" {
-			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+			return "", time.Time{}, fmt.Errorf("received non-200 status code: %d", res.StatusCode)
 		}
 
-		return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d: %s", res.StatusCode, msg)
+		return "", time.Time{}, fmt.Errorf("received non-200 status code: %d: %s", res.StatusCode, msg)
 	}
 
 	authRes := &authResponse{}
@@ -521,11 +521,19 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 // included in the redirect URL. Use HandleOAuthCallback to complete the flow.
 func (c *Client) RequestAuthorization() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		state := rand.Text()
-		c.stateMap.Store(state, struct{}{})
-		url := c.oauthConf.AuthCodeURL(state)
+		url := c.AuthorizationURL()
 		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	})
+}
+
+// AuthorizationURL returns the Zoom OAuth 2.0 authorization URL for the
+// authorization-code flow. A random CSRF state value is generated, stored
+// internally, and included in the URL for later validation by
+// HandleOAuthCallback.
+func (c *Client) AuthorizationURL() string {
+	state := rand.Text()
+	c.stateMap.Store(state, struct{}{})
+	return c.oauthConf.AuthCodeURL(state)
 }
 
 // HandleOAuthCallback returns an http.Handler that completes the OAuth 2.0
@@ -535,31 +543,61 @@ func (c *Client) RequestAuthorization() http.Handler {
 // Zoom OAuth application.
 func (c *Client) HandleOAuthCallback() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		err := c.tokenMutex.Lock(ctx)
-		if err != nil {
-			http.Error(w, "Error locking token mutex", http.StatusInternalServerError)
-			return
-		}
-		defer c.tokenMutex.Unlock(ctx)
-
 		state := r.FormValue("state")
-		if _, ok := c.stateMap.LoadAndDelete(state); !ok {
+		code := r.FormValue("code")
+		if err := c.ExchangeAuthorizationCode(r.Context(), code, state); errors.Is(err, ErrInvalidOAuthState) {
 			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return
-		}
-
-		code := r.FormValue("code")
-		token, err := c.oauthConf.Exchange(r.Context(), code)
-		if err != nil {
-			http.Error(w, "oauthConf.Exchange() failed", http.StatusInternalServerError)
-			return
-		}
-		expiresAt := token.Expiry.Add(-5 * time.Minute)
-		err = c.tokenMutex.Set(ctx, token.AccessToken, expiresAt)
-		if err != nil {
-			http.Error(w, "Error setting token in mutex", http.StatusInternalServerError)
+		} else if err != nil {
+			http.Error(w, "OAuth authorization-code exchange failed", http.StatusInternalServerError)
 			return
 		}
 	})
+}
+
+// ErrInvalidOAuthState is returned when the OAuth callback state does not match
+// a state generated by AuthorizationURL or RequestAuthorization.
+var ErrInvalidOAuthState = errors.New("invalid oauth state")
+
+// ExchangeAuthorizationCode validates the OAuth state, exchanges an
+// authorization code for tokens, and stores the resulting access and refresh
+// tokens in the configured TokenMutex.
+func (c *Client) ExchangeAuthorizationCode(ctx context.Context, code string, state string) (err error) {
+	if code == "" {
+		return errors.New("authorization code is required")
+	}
+	if _, ok := c.stateMap.LoadAndDelete(state); !ok {
+		return ErrInvalidOAuthState
+	}
+
+	if err := c.tokenMutex.Lock(ctx); err != nil {
+		return fmt.Errorf("Error locking token mutex: %w", err)
+	}
+	defer func() {
+		if unlockErr := c.tokenMutex.Unlock(ctx); unlockErr != nil {
+			if err != nil {
+				err = errors.Join(err, fmt.Errorf("Error unlocking token mutex: %w", unlockErr))
+				return
+			}
+
+			err = fmt.Errorf("Error unlocking token mutex: %w", unlockErr)
+		}
+	}()
+
+	token, err := c.oauthConf.Exchange(ctx, code)
+	if err != nil {
+		return fmt.Errorf("OAuth code exchange failed: %w", err)
+	}
+
+	expiresAt := token.Expiry.Add(-5 * time.Minute)
+	if err := c.tokenMutex.Set(ctx, token.AccessToken, expiresAt); err != nil {
+		return fmt.Errorf("Error setting token in mutex: %w", err)
+	}
+	if token.RefreshToken != "" {
+		if err := c.tokenMutex.SetRefreshToken(ctx, token.RefreshToken); err != nil {
+			return fmt.Errorf("Error setting refresh token in mutex: %w", err)
+		}
+	}
+
+	return nil
 }

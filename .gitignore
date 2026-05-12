@@ -2,3 +2,7 @@
 playground/
 main.go
 !cmd/go-zoom/main.go
+.opencode
+.ignore
+/go-zoom
+/dist

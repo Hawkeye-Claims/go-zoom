@@ -176,11 +176,11 @@ func (m *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([
 	}
 
 	if options.meetingId != "" && options.userId != "" {
-		return nil, nil, fmt.Errorf("Cannot specify both meetingId and userId")
+		return nil, nil, fmt.Errorf("cannot specify both meetingId and userId")
 	}
 
 	if options.queryParameters != nil && options.listQueryParameters != nil {
-		return nil, nil, fmt.Errorf("Cannot specify both queryParameters and listQueryParameters")
+		return nil, nil, fmt.Errorf("cannot specify both queryParameters and listQueryParameters")
 	}
 
 	query := any(nil)
@@ -204,7 +204,7 @@ func (m *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([
 	if options.userId != "" {
 		endpoint = fmt.Sprintf("/users/%s/meetings", url.PathEscape(options.userId))
 	} else {
-		return nil, nil, fmt.Errorf("Must specify either meetingId or userId")
+		return nil, nil, fmt.Errorf("must specify either meetingId or userId")
 	}
 
 	type response struct {
@@ -227,11 +227,7 @@ func (m *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([
 		*PaginationOptions
 	}
 
-	for {
-		if queryResponse.NextPageToken == "" {
-			break
-		}
-
+	for queryResponse.NextPageToken != "" {
 		nextPageToken := queryResponse.NextPageToken
 		pageQuery := &meetingListPageQuery{
 			MeetingListQueryParameters: options.listQueryParameters,
@@ -262,14 +258,14 @@ type MeetingAttributes struct {
 	// PreSchedule, when true, creates a pre-scheduled meeting.
 	PreSchedule bool `json:"pre_schedule,omitempty"`
 	// Recurrence holds the recurrence settings for a recurring meeting.
-	Recurrence models.MeetingRecurrence `json:"recurrence"`
+	Recurrence *models.MeetingRecurrence `json:"recurrence,omitempty"`
 	// ScheduleFor is the email or user ID of the user the meeting is scheduled
 	// on behalf of.
 	ScheduleFor string `json:"schedule_for,omitempty"`
 	// Settings holds the meeting configuration options.
-	Settings models.MeetingSettings `json:"settings"`
+	Settings *models.MeetingSettings `json:"settings,omitempty"`
 	// StartTime is the scheduled start time of the meeting.
-	StartTime time.Time `json:"start_time"`
+	StartTime *time.Time `json:"start_time,omitempty"`
 	// TemplateID is the ID of a meeting template to apply.
 	TemplateID string `json:"template_id,omitempty"`
 	// Timezone specifies the time zone for the meeting start time.
@@ -277,7 +273,7 @@ type MeetingAttributes struct {
 	// Topic is the meeting title.
 	Topic string `json:"topic,omitempty"`
 	// TrackingFields holds custom tracking field values for reporting.
-	TrackingFields []models.MeetingTrackingField `json:"tracking_fields"`
+	TrackingFields []models.MeetingTrackingField `json:"tracking_fields,omitempty"`
 	// Type specifies the meeting type (e.g. scheduled, recurring).
 	Type enums.MeetingType `json:"type,omitempty"`
 }
@@ -292,7 +288,7 @@ func (m *MeetingsService) Create(ctx context.Context, userId string, meetingAttr
 		return &models.Meeting{}, res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusCreated {
-		return &models.Meeting{}, res, fmt.Errorf("Expected status code %d, got %d", http.StatusCreated, res.StatusCode)
+		return &models.Meeting{}, res, fmt.Errorf("expected status code %d, got %d", http.StatusCreated, res.StatusCode)
 	}
 	return &response, res, nil
 }
@@ -309,24 +305,24 @@ type MeetingUpdateAttributes struct {
 	// PreSchedule, when true, marks the meeting as pre-scheduled.
 	PreSchedule bool `json:"pre_schedule,omitempty"`
 	// Recurrence holds updated recurrence settings.
-	Recurrence models.MeetingRecurrence `json:"recurrence"`
+	Recurrence *models.MeetingRecurrence `json:"recurrence,omitempty"`
 	// ScheduleFor is the email or user ID of the host the meeting is scheduled
 	// for.
-	ScheduleFor string `json:"schedule_for"`
+	ScheduleFor string `json:"schedule_for,omitempty"`
 	// Settings holds the updated meeting configuration options.
-	Settings models.MeetingSettings `json:"settings"`
+	Settings *models.MeetingSettings `json:"settings,omitempty"`
 	// StartTime is the updated meeting start time.
-	StartTime time.Time `json:"start_time"`
+	StartTime *time.Time `json:"start_time,omitempty"`
 	// TemplateID is the updated meeting template ID.
-	TemplateID string `json:"template_id"`
+	TemplateID string `json:"template_id,omitempty"`
 	// Timezone specifies the time zone for the updated start time.
 	Timezone string `json:"timezone,omitempty"`
 	// Topic is the updated meeting title.
 	Topic string `json:"topic,omitempty"`
 	// TrackingFields holds updated custom tracking field values.
-	TrackingFields []models.MeetingTrackingField `json:"tracking_fields"`
+	TrackingFields []models.MeetingTrackingField `json:"tracking_fields,omitempty"`
 	// Type is the updated meeting type.
-	Type enums.MeetingType `json:"type"`
+	Type enums.MeetingType `json:"type,omitempty"`
 }
 
 // Update patches an existing Zoom meeting identified by meetingId with the
@@ -342,7 +338,7 @@ func (m *MeetingsService) Update(ctx context.Context, meetingId int, meetingAttr
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }
@@ -360,7 +356,7 @@ func (m *MeetingsService) Delete(ctx context.Context, meetingId int, opts ...Mee
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }
