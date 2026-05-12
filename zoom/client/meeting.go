@@ -277,7 +277,7 @@ type MeetingAttributes struct {
 	// Topic is the meeting title.
 	Topic string `json:"topic,omitempty"`
 	// TrackingFields holds custom tracking field values for reporting.
-	TrackingFields []models.MeetingTrackingField `json:"tracking_fields"`
+	TrackingFields []models.MeetingTrackingField `json:"tracking_fields,omitempty"`
 	// Type specifies the meeting type (e.g. scheduled, recurring).
 	Type enums.MeetingType `json:"type,omitempty"`
 }
