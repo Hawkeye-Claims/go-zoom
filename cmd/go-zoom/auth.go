@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -106,6 +107,9 @@ func (c *cli) runAuthAuthorizationCode(args []string) error {
 	serverAddr := *listenAddr
 	if serverAddr == "" {
 		serverAddr = redirectURL.Host
+	}
+	if _, _, splitErr := net.SplitHostPort(serverAddr); splitErr != nil {
+		return fmt.Errorf("oauth callback listen address %q must include a port; set --listen-addr localhost:<port> or use a redirect URI with host:port", serverAddr)
 	}
 
 	callbackPath := redirectURL.Path
