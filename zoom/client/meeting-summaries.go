@@ -109,10 +109,7 @@ func (m *MeetingsService) GetSummary(ctx context.Context, opts ...MeetingsSummar
 		*MeetingSummaryQueryParameters
 		*PaginationOptions
 	}
-	for {
-		if queryResponse.NextPageToken == "" {
-			break
-		}
+	for queryResponse.NextPageToken != "" {
 		nextPageToken := queryResponse.NextPageToken
 		pageQuery := &meetingSummaryPageQuery{
 			MeetingSummaryQueryParameters: options.queryParameters,
@@ -138,7 +135,7 @@ func (m *MeetingsService) DeleteSummary(ctx context.Context, meetingId string) (
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }

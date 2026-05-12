@@ -13,7 +13,7 @@ import (
 // runUsers dispatches users subcommands.
 func (c *cli) runUsers(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "users commands: get, create, update, delete")
+		_, _ = fmt.Fprintln(c.stderr, "users commands: get, create, update, delete")
 		return nil
 	}
 
@@ -27,7 +27,7 @@ func (c *cli) runUsers(args []string) error {
 	case "delete":
 		return c.runUsersDelete(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "users commands: get, create, update, delete")
+		_, _ = fmt.Fprintln(c.stderr, "users commands: get, create, update, delete")
 		return nil
 	default:
 		return fmt.Errorf("unknown users command %q", args[0])

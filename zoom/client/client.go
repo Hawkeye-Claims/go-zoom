@@ -318,7 +318,7 @@ func (c *Client) request(ctx context.Context, method string, path string, query 
 	if err != nil {
 		return nil, fmt.Errorf("Error making HTTP request: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode > http.StatusIMUsed {
 		if res.StatusCode == http.StatusUnauthorized {
@@ -334,7 +334,7 @@ func (c *Client) request(ctx context.Context, method string, path string, query 
 			return res, fmt.Errorf("Error decoding error response body: %w", err)
 		}
 
-		return res, fmt.Errorf("Zoom API error (status %d): %v", res.StatusCode, errRes)
+		return res, fmt.Errorf("zoom API error (status %d): %v", res.StatusCode, errRes)
 	}
 
 	if out != nil {
@@ -380,7 +380,7 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 	case "account_credentials":
 
 	default:
-		return "", time.Time{}, fmt.Errorf("Unsupported grant type: %s", c.grantType)
+		return "", time.Time{}, fmt.Errorf("unsupported grant type: %s", c.grantType)
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s?%s", zoomTokenURL, query.Encode()), nil)
 	if err != nil {
@@ -394,7 +394,7 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 	if err != nil {
 		return "", time.Time{}, fmt.Errorf("Error doing HTTP request: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != http.StatusOK {
 		errRes := &struct {
@@ -406,7 +406,7 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 
 		err = json.NewDecoder(res.Body).Decode(errRes)
 		if err != nil {
-			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+			return "", time.Time{}, fmt.Errorf("received non-200 status code: %d", res.StatusCode)
 		}
 
 		msg := errRes.ErrorDescription
@@ -421,10 +421,10 @@ func (c *Client) accessToken(ctx context.Context) (string, time.Time, error) {
 		}
 
 		if msg == "" {
-			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+			return "", time.Time{}, fmt.Errorf("received non-200 status code: %d", res.StatusCode)
 		}
 
-		return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d: %s", res.StatusCode, msg)
+		return "", time.Time{}, fmt.Errorf("received non-200 status code: %d: %s", res.StatusCode, msg)
 	}
 
 	authRes := &authResponse{}
@@ -465,7 +465,7 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 	if err != nil {
 		return "", time.Time{}, fmt.Errorf("Error doing HTTP request: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != http.StatusOK {
 		errRes := &struct {
@@ -477,7 +477,7 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 
 		err = json.NewDecoder(res.Body).Decode(errRes)
 		if err != nil {
-			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+			return "", time.Time{}, fmt.Errorf("received non-200 status code: %d", res.StatusCode)
 		}
 
 		msg := errRes.ErrorDescription
@@ -492,10 +492,10 @@ func (c *Client) refreshToken(ctx context.Context, refreshToken string) (string,
 		}
 
 		if msg == "" {
-			return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d", res.StatusCode)
+			return "", time.Time{}, fmt.Errorf("received non-200 status code: %d", res.StatusCode)
 		}
 
-		return "", time.Time{}, fmt.Errorf("Received non-200 status code: %d: %s", res.StatusCode, msg)
+		return "", time.Time{}, fmt.Errorf("received non-200 status code: %d: %s", res.StatusCode, msg)
 	}
 
 	authRes := &authResponse{}

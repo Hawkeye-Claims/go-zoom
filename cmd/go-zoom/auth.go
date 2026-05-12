@@ -57,8 +57,12 @@ func (c *cli) runAuthTest(args []string) error {
 	}
 
 	if cfg.grantType == "authorization_code" {
-		fmt.Fprintln(c.stdout, "Authorization Code configuration is valid.")
-		fmt.Fprintln(c.stdout, "Run `auth authorization-code` to complete interactive OAuth.")
+		if _, err := fmt.Fprintln(c.stdout, "Authorization Code configuration is valid."); err != nil {
+			return fmt.Errorf("write auth check output: %w", err)
+		}
+		if _, err := fmt.Fprintln(c.stdout, "Run `auth authorization-code` to complete interactive OAuth."); err != nil {
+			return fmt.Errorf("write auth check output: %w", err)
+		}
 		return nil
 	}
 
@@ -67,7 +71,9 @@ func (c *cli) runAuthTest(args []string) error {
 		return fmt.Errorf("authentication check failed: %w", err)
 	}
 
-	fmt.Fprintf(c.stdout, "Authentication succeeded. Retrieved %d user record(s).\n", len(users))
+	if _, err := fmt.Fprintf(c.stdout, "Authentication succeeded. Retrieved %d user record(s).\n", len(users)); err != nil {
+		return fmt.Errorf("write auth check output: %w", err)
+	}
 	return nil
 }
 
@@ -150,8 +156,14 @@ func (c *cli) runAuthAuthorizationCode(args []string) error {
 	}()
 
 	authURL := zoomClient.AuthorizationURL()
-	fmt.Fprintf(c.stdout, "Open this URL in your browser to authenticate:\n%s\n", authURL)
-	fmt.Fprintf(c.stdout, "Waiting up to %s for callback on %s (listening on %s) ...\n", authTimeout.String(), cfg.redirectURI, serverAddr)
+	if _, err := fmt.Fprintf(c.stdout, "Open this URL in your browser to authenticate:\n%s\n", authURL); err != nil {
+		_ = srv.Shutdown(context.Background())
+		return fmt.Errorf("write auth URL output: %w", err)
+	}
+	if _, err := fmt.Fprintf(c.stdout, "Waiting up to %s for callback on %s (listening on %s) ...\n", authTimeout.String(), cfg.redirectURI, serverAddr); err != nil {
+		_ = srv.Shutdown(context.Background())
+		return fmt.Errorf("write auth wait output: %w", err)
+	}
 
 	select {
 	case <-done:
@@ -160,7 +172,10 @@ func (c *cli) runAuthAuthorizationCode(args []string) error {
 			_ = srv.Shutdown(context.Background())
 			return fmt.Errorf("oauth callback received but token validation failed: %w", err)
 		}
-		fmt.Fprintln(c.stdout, "Authorization succeeded.")
+		if _, err := fmt.Fprintln(c.stdout, "Authorization succeeded."); err != nil {
+			_ = srv.Shutdown(context.Background())
+			return fmt.Errorf("write auth success output: %w", err)
+		}
 	case listenErr := <-errCh:
 		return fmt.Errorf("oauth helper server failed: %w", listenErr)
 	case <-time.After(*authTimeout):
@@ -181,8 +196,12 @@ func (c *cli) runAuthAuthorizationCodeManual(zoomClient *client.Client) error {
 		authState = parsedAuthURL.Query().Get("state")
 	}
 
-	fmt.Fprintf(c.stdout, "Open this URL in your browser to authenticate:\n%s\n", authURL)
-	fmt.Fprintln(c.stdout, "After approving, paste the full redirected callback URL or just the authorization code:")
+	if _, err := fmt.Fprintf(c.stdout, "Open this URL in your browser to authenticate:\n%s\n", authURL); err != nil {
+		return fmt.Errorf("write auth URL output: %w", err)
+	}
+	if _, err := fmt.Fprintln(c.stdout, "After approving, paste the full redirected callback URL or just the authorization code:"); err != nil {
+		return fmt.Errorf("write auth prompt output: %w", err)
+	}
 
 	input, err := readLine(os.Stdin)
 	if err != nil {
@@ -202,7 +221,9 @@ func (c *cli) runAuthAuthorizationCodeManual(zoomClient *client.Client) error {
 		return fmt.Errorf("oauth code exchanged but token validation failed: %w", err)
 	}
 
-	fmt.Fprintln(c.stdout, "Authorization succeeded.")
+	if _, err := fmt.Fprintln(c.stdout, "Authorization succeeded."); err != nil {
+		return fmt.Errorf("write auth success output: %w", err)
+	}
 	return nil
 }
 
@@ -241,7 +262,7 @@ func parseOAuthCallbackInput(input string, fallbackState string) (string, string
 
 // printAuthUsage prints usage for auth commands.
 func (c *cli) printAuthUsage() {
-	fmt.Fprintln(c.stderr, `auth commands:
+	_, _ = fmt.Fprintln(c.stderr, `auth commands:
   auth test                 Validate auth config (uses SDK client)
   auth authorization-code   Start local OAuth helper flow
 

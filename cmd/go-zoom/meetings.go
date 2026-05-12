@@ -13,7 +13,7 @@ import (
 // runMeetings dispatches meetings subcommands.
 func (c *cli) runMeetings(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "meetings commands: get, create, update, delete, summary get|delete")
+		_, _ = fmt.Fprintln(c.stderr, "meetings commands: get, create, update, delete, summary get|delete")
 		return nil
 	}
 
@@ -29,7 +29,7 @@ func (c *cli) runMeetings(args []string) error {
 	case "summary":
 		return c.runMeetingsSummary(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "meetings commands: get, create, update, delete, summary get|delete")
+		_, _ = fmt.Fprintln(c.stderr, "meetings commands: get, create, update, delete, summary get|delete")
 		return nil
 	default:
 		return fmt.Errorf("unknown meetings command %q", args[0])
@@ -134,7 +134,7 @@ func (c *cli) runMeetingsCreate(args []string) error {
 // runMeetingsSummary dispatches meetings summary commands.
 func (c *cli) runMeetingsSummary(args []string) error {
 	if len(args) == 0 {
-		fmt.Fprintln(c.stderr, "meetings summary commands: get, delete")
+		_, _ = fmt.Fprintln(c.stderr, "meetings summary commands: get, delete")
 		return nil
 	}
 
@@ -144,7 +144,7 @@ func (c *cli) runMeetingsSummary(args []string) error {
 	case "delete":
 		return c.runMeetingsSummaryDelete(args[1:])
 	case "help", "--help", "-h":
-		fmt.Fprintln(c.stderr, "meetings summary commands: get, delete")
+		_, _ = fmt.Fprintln(c.stderr, "meetings summary commands: get, delete")
 		return nil
 	default:
 		return fmt.Errorf("unknown meetings summary command %q", args[0])

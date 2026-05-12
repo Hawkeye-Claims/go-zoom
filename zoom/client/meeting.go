@@ -176,11 +176,11 @@ func (m *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([
 	}
 
 	if options.meetingId != "" && options.userId != "" {
-		return nil, nil, fmt.Errorf("Cannot specify both meetingId and userId")
+		return nil, nil, fmt.Errorf("cannot specify both meetingId and userId")
 	}
 
 	if options.queryParameters != nil && options.listQueryParameters != nil {
-		return nil, nil, fmt.Errorf("Cannot specify both queryParameters and listQueryParameters")
+		return nil, nil, fmt.Errorf("cannot specify both queryParameters and listQueryParameters")
 	}
 
 	query := any(nil)
@@ -204,7 +204,7 @@ func (m *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([
 	if options.userId != "" {
 		endpoint = fmt.Sprintf("/users/%s/meetings", url.PathEscape(options.userId))
 	} else {
-		return nil, nil, fmt.Errorf("Must specify either meetingId or userId")
+		return nil, nil, fmt.Errorf("must specify either meetingId or userId")
 	}
 
 	type response struct {
@@ -227,11 +227,7 @@ func (m *MeetingsService) Get(ctx context.Context, opts ...MeetingGetOptions) ([
 		*PaginationOptions
 	}
 
-	for {
-		if queryResponse.NextPageToken == "" {
-			break
-		}
-
+	for queryResponse.NextPageToken != "" {
 		nextPageToken := queryResponse.NextPageToken
 		pageQuery := &meetingListPageQuery{
 			MeetingListQueryParameters: options.listQueryParameters,
@@ -292,7 +288,7 @@ func (m *MeetingsService) Create(ctx context.Context, userId string, meetingAttr
 		return &models.Meeting{}, res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusCreated {
-		return &models.Meeting{}, res, fmt.Errorf("Expected status code %d, got %d", http.StatusCreated, res.StatusCode)
+		return &models.Meeting{}, res, fmt.Errorf("expected status code %d, got %d", http.StatusCreated, res.StatusCode)
 	}
 	return &response, res, nil
 }
@@ -342,7 +338,7 @@ func (m *MeetingsService) Update(ctx context.Context, meetingId int, meetingAttr
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }
@@ -360,7 +356,7 @@ func (m *MeetingsService) Delete(ctx context.Context, meetingId int, opts ...Mee
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d, got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }

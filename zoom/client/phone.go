@@ -151,11 +151,11 @@ func (p *PhoneCallHistoryService) Get(ctx context.Context, opts ...PhoneCallHist
 	}
 
 	if options.phoneCallHistoryUUID != "" && options.phoneCallHistoryQueryParameters != nil {
-		return nil, nil, fmt.Errorf("Cannot specify both phoneCallHistoryUUID and phoneCallHistoryQueryParameters")
+		return nil, nil, fmt.Errorf("cannot specify both phoneCallHistoryUUID and phoneCallHistoryQueryParameters")
 	}
 
 	if options.userId != "" && options.phoneCallHistoryUUID != "" {
-		return nil, nil, fmt.Errorf("Cannot specify both userId and phoneCallHistoryUUID")
+		return nil, nil, fmt.Errorf("cannot specify both userId and phoneCallHistoryUUID")
 	}
 
 	if options.phoneCallHistoryUUID != "" {
@@ -196,10 +196,7 @@ func (p *PhoneCallHistoryService) Get(ctx context.Context, opts ...PhoneCallHist
 			*PhoneCallHistoryQueryParameters
 			*PaginationOptions
 		}
-		for {
-			if queryResponse.NextPageToken == "" {
-				break
-			}
+		for queryResponse.NextPageToken != "" {
 			nextPageToken := queryResponse.NextPageToken
 			pageQuery := &userCallHistoryPageQuery{
 				PhoneCallHistoryQueryParameters: options.phoneCallHistoryQueryParameters,
@@ -230,10 +227,7 @@ func (p *PhoneCallHistoryService) Get(ctx context.Context, opts ...PhoneCallHist
 		*PhoneCallHistoryQueryParameters
 		*PaginationOptions
 	}
-	for {
-		if queryResponse.NextPageToken == "" {
-			break
-		}
+	for queryResponse.NextPageToken != "" {
 		nextPageToken := queryResponse.NextPageToken
 		pageQuery := &callHistoryPageQuery{
 			PhoneCallHistoryQueryParameters: options.phoneCallHistoryQueryParameters,
@@ -264,7 +258,7 @@ func (p *PhoneCallHistoryService) AddClientCode(ctx context.Context, callLogId, 
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d but got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d but got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }
@@ -277,7 +271,7 @@ func (p *PhoneCallHistoryService) DeleteUserCallHistory(ctx context.Context, use
 		return res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusNoContent {
-		return res, fmt.Errorf("Expected status code %d but got %d", http.StatusNoContent, res.StatusCode)
+		return res, fmt.Errorf("expected status code %d but got %d", http.StatusNoContent, res.StatusCode)
 	}
 	return res, nil
 }
@@ -291,7 +285,7 @@ func (p *PhoneCallHistoryService) GetCallElement(ctx context.Context, callElemen
 		return nil, res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusOK {
-		return nil, res, fmt.Errorf("Expected status code %d but got %d", http.StatusOK, res.StatusCode)
+		return nil, res, fmt.Errorf("expected status code %d but got %d", http.StatusOK, res.StatusCode)
 	}
 	return &callElement, res, nil
 }
@@ -305,7 +299,7 @@ func (p *PhoneCallHistoryService) GetAICallSummary(ctx context.Context, userId, 
 		return nil, res, fmt.Errorf("Error making request: %w", err)
 	}
 	if res.StatusCode != http.StatusOK {
-		return nil, res, fmt.Errorf("Expected status code %d but got %d", http.StatusOK, res.StatusCode)
+		return nil, res, fmt.Errorf("expected status code %d but got %d", http.StatusOK, res.StatusCode)
 	}
 	return &aiCallSummary, res, nil
 }
