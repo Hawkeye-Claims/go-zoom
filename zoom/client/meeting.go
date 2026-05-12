@@ -262,14 +262,14 @@ type MeetingAttributes struct {
 	// PreSchedule, when true, creates a pre-scheduled meeting.
 	PreSchedule bool `json:"pre_schedule,omitempty"`
 	// Recurrence holds the recurrence settings for a recurring meeting.
-	Recurrence models.MeetingRecurrence `json:"recurrence"`
+	Recurrence *models.MeetingRecurrence `json:"recurrence,omitempty"`
 	// ScheduleFor is the email or user ID of the user the meeting is scheduled
 	// on behalf of.
 	ScheduleFor string `json:"schedule_for,omitempty"`
 	// Settings holds the meeting configuration options.
-	Settings models.MeetingSettings `json:"settings"`
+	Settings *models.MeetingSettings `json:"settings,omitempty"`
 	// StartTime is the scheduled start time of the meeting.
-	StartTime time.Time `json:"start_time"`
+	StartTime *time.Time `json:"start_time,omitempty"`
 	// TemplateID is the ID of a meeting template to apply.
 	TemplateID string `json:"template_id,omitempty"`
 	// Timezone specifies the time zone for the meeting start time.
