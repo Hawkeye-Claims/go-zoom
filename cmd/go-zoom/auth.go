@@ -227,6 +227,9 @@ func parseOAuthCallbackInput(input string, fallbackState string) (string, string
 		if state == "" {
 			state = fallbackState
 		}
+		if state == "" {
+			return "", "", errors.New("paste the full callback URL so the OAuth state can be validated, or re-run auth to generate a new callback URL")
+		}
 		return parsedURL.Query().Get("code"), state, nil
 	}
 
