@@ -253,7 +253,7 @@ type UserAttributes struct {
 	// DivisionIds lists the division IDs the user belongs to.
 	DivisionIds []string `json:"division_ids,omitempty"`
 	// Feature holds the user's feature entitlements.
-	Feature models.Feature `json:"feature"`
+	Feature *models.Feature `json:"feature,omitempty"`
 	// FirstName is the user's first name.
 	FirstName string `json:"first_name,omitempty"`
 	// LastName is the user's last name.

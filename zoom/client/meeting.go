@@ -309,24 +309,24 @@ type MeetingUpdateAttributes struct {
 	// PreSchedule, when true, marks the meeting as pre-scheduled.
 	PreSchedule bool `json:"pre_schedule,omitempty"`
 	// Recurrence holds updated recurrence settings.
-	Recurrence models.MeetingRecurrence `json:"recurrence"`
+	Recurrence *models.MeetingRecurrence `json:"recurrence,omitempty"`
 	// ScheduleFor is the email or user ID of the host the meeting is scheduled
 	// for.
-	ScheduleFor string `json:"schedule_for"`
+	ScheduleFor string `json:"schedule_for,omitempty"`
 	// Settings holds the updated meeting configuration options.
-	Settings models.MeetingSettings `json:"settings"`
+	Settings *models.MeetingSettings `json:"settings,omitempty"`
 	// StartTime is the updated meeting start time.
-	StartTime time.Time `json:"start_time"`
+	StartTime *time.Time `json:"start_time,omitempty"`
 	// TemplateID is the updated meeting template ID.
-	TemplateID string `json:"template_id"`
+	TemplateID string `json:"template_id,omitempty"`
 	// Timezone specifies the time zone for the updated start time.
 	Timezone string `json:"timezone,omitempty"`
 	// Topic is the updated meeting title.
 	Topic string `json:"topic,omitempty"`
 	// TrackingFields holds updated custom tracking field values.
-	TrackingFields []models.MeetingTrackingField `json:"tracking_fields"`
+	TrackingFields []models.MeetingTrackingField `json:"tracking_fields,omitempty"`
 	// Type is the updated meeting type.
-	Type enums.MeetingType `json:"type"`
+	Type enums.MeetingType `json:"type,omitempty"`
 }
 
 // Update patches an existing Zoom meeting identified by meetingId with the
