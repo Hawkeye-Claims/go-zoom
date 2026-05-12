@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -74,6 +77,8 @@ func (c *cli) runAuthAuthorizationCode(args []string) error {
 
 	cfg := c.bindClientFlags(fs, false, true)
 	authTimeout := fs.Duration("auth-timeout", 5*time.Minute, "How long to wait for OAuth callback")
+	listenAddr := fs.String("listen-addr", "", "Local address for OAuth callback server; defaults to redirect URI host")
+	manual := fs.Bool("manual", false, "Print auth URL and prompt for pasted callback URL or authorization code")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -87,12 +92,20 @@ func (c *cli) runAuthAuthorizationCode(args []string) error {
 		return err
 	}
 
+	if *manual {
+		return c.runAuthAuthorizationCodeManual(zoomClient)
+	}
+
 	redirectURL, err := url.Parse(cfg.redirectURI)
 	if err != nil {
 		return fmt.Errorf("invalid redirect URI: %w", err)
 	}
 	if redirectURL.Host == "" {
-		return errors.New("redirect URI must include a host and port")
+		return errors.New("redirect URI must include a host")
+	}
+	serverAddr := *listenAddr
+	if serverAddr == "" {
+		serverAddr = redirectURL.Host
 	}
 
 	callbackPath := redirectURL.Path
@@ -102,7 +115,6 @@ func (c *cli) runAuthAuthorizationCode(args []string) error {
 
 	done := make(chan struct{})
 	mux := http.NewServeMux()
-	mux.Handle("/oauth/login", zoomClient.RequestAuthorization())
 
 	callbackHandler := zoomClient.HandleOAuthCallback()
 	mux.HandleFunc(callbackPath, func(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +133,7 @@ func (c *cli) runAuthAuthorizationCode(args []string) error {
 	})
 
 	srv := &http.Server{
-		Addr:              redirectURL.Host,
+		Addr:              serverAddr,
 		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
@@ -133,8 +145,9 @@ func (c *cli) runAuthAuthorizationCode(args []string) error {
 		}
 	}()
 
-	fmt.Fprintf(c.stdout, "Open this URL in your browser to authenticate:\nhttp://%s/oauth/login\n", redirectURL.Host)
-	fmt.Fprintf(c.stdout, "Waiting up to %s for callback on %s ...\n", authTimeout.String(), cfg.redirectURI)
+	authURL := zoomClient.AuthorizationURL()
+	fmt.Fprintf(c.stdout, "Open this URL in your browser to authenticate:\n%s\n", authURL)
+	fmt.Fprintf(c.stdout, "Waiting up to %s for callback on %s (listening on %s) ...\n", authTimeout.String(), cfg.redirectURI, serverAddr)
 
 	select {
 	case <-done:
@@ -157,6 +170,68 @@ func (c *cli) runAuthAuthorizationCode(args []string) error {
 	return nil
 }
 
+func (c *cli) runAuthAuthorizationCodeManual(zoomClient *client.Client) error {
+	authURL := zoomClient.AuthorizationURL()
+	authState := ""
+	if parsedAuthURL, err := url.Parse(authURL); err == nil {
+		authState = parsedAuthURL.Query().Get("state")
+	}
+
+	fmt.Fprintf(c.stdout, "Open this URL in your browser to authenticate:\n%s\n", authURL)
+	fmt.Fprintln(c.stdout, "After approving, paste the full redirected callback URL or just the authorization code:")
+
+	input, err := readLine(os.Stdin)
+	if err != nil {
+		return err
+	}
+
+	code, state, err := parseOAuthCallbackInput(input, authState)
+	if err != nil {
+		return err
+	}
+	if err := zoomClient.ExchangeAuthorizationCode(context.Background(), code, state); err != nil {
+		return err
+	}
+
+	_, _, err = zoomClient.Users.Get(context.Background(), client.WithUserId("me"))
+	if err != nil {
+		return fmt.Errorf("oauth code exchanged but token validation failed: %w", err)
+	}
+
+	fmt.Fprintln(c.stdout, "Authorization succeeded.")
+	return nil
+}
+
+func readLine(reader io.Reader) (string, error) {
+	scanner := bufio.NewScanner(reader)
+	if !scanner.Scan() {
+		if err := scanner.Err(); err != nil {
+			return "", fmt.Errorf("failed to read input: %w", err)
+		}
+		return "", errors.New("no callback URL or authorization code provided")
+	}
+	return strings.TrimSpace(scanner.Text()), nil
+}
+
+func parseOAuthCallbackInput(input string, fallbackState string) (string, string, error) {
+	if input == "" {
+		return "", "", errors.New("no callback URL or authorization code provided")
+	}
+
+	if parsedURL, err := url.Parse(input); err == nil && parsedURL.Query().Get("code") != "" {
+		state := parsedURL.Query().Get("state")
+		if state == "" {
+			state = fallbackState
+		}
+		return parsedURL.Query().Get("code"), state, nil
+	}
+
+	if fallbackState == "" {
+		return "", "", errors.New("paste the full callback URL so the OAuth state can be validated")
+	}
+	return input, fallbackState, nil
+}
+
 // printAuthUsage prints usage for auth commands.
 func (c *cli) printAuthUsage() {
 	fmt.Fprintln(c.stderr, `auth commands:
@@ -165,7 +240,9 @@ func (c *cli) printAuthUsage() {
 
 Examples:
   go run ./cmd/go-zoom auth test --grant-type account_credentials
-  go run ./cmd/go-zoom auth authorization-code --redirect-uri http://localhost:8080/oauth/callback`)
+  go run ./cmd/go-zoom auth authorization-code --redirect-uri http://localhost:8080/oauth/callback
+  go run ./cmd/go-zoom auth authorization-code --redirect-uri https://example.ngrok-free.app/oauth/callback --listen-addr localhost:8080
+  go run ./cmd/go-zoom auth authorization-code --manual --redirect-uri https://example.com/oauth/callback`)
 }
 
 // ensureNoUnexpectedArgs validates that no trailing positional arguments remain.
