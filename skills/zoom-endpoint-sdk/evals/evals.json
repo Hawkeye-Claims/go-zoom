@@ -1,0 +1,23 @@
+{
+  "skill_name": "zoom-endpoint-sdk",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Add SDK support for the Zoom Phone shared line groups list endpoint. It should live under the Phone service tree, expose a method that lists all shared line groups with auto-pagination, add response models for the shared line group fields, and include CLI access under `go-zoom phone`. Follow the project conventions and verify the change.",
+      "expected_output": "A minimal implementation that adds a Phone sub-service or method in the existing style, uses functional query options if needed, escapes path parameters, preserves pagination filters, documents exported API, wires CLI dispatch/help, formats Go code, and runs `go test ./...`.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Please add the Zoom endpoint for updating a user's phone profile settings. It is a PATCH under `/phone/users/{userId}/settings`; some boolean fields need to be able to send false, so be careful with omitempty. No CLI needed unless it is straightforward.",
+      "expected_output": "An update method on the Phone Users service with pointer-based PATCH attributes where false/zero must be sent, escaped `userId`, correct no-content status handling, interface updates, exported comments, and verification with gofmt/go test.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Add support for retrieving Zoom meeting registrants for a meeting. The API lists registrants for `/meetings/{meetingId}/registrants`, supports query params like occurrence_id and status, and returns paginated `registrants`. Please add the SDK method and models but don't build a CLI command.",
+      "expected_output": "A Meetings service method using functional options/query parameters, auto-pagination with `PaginationOptions`, models in `zoom/models`, escaped meeting ID, no CLI changes, documentation comments, gofmt, and `go test ./...`.",
+      "files": []
+    }
+  ]
+}
