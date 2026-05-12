@@ -1,6 +1,6 @@
 module github.com/Hawkeye-Claims/go-zoom
 
-go 1.24.4
+go 1.26
 
 require (
 	github.com/google/go-querystring v1.1.0
