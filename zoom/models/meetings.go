@@ -110,156 +110,156 @@ type MeetingRecurrence struct {
 type MeetingSettings struct {
 	// AdditionalDataCenterRegions lists additional data centre regions to use for
 	// the meeting.
-	AdditionalDataCenterRegions []string `json:"additional_data_center_regions"`
+	AdditionalDataCenterRegions []string `json:"additional_data_center_regions,omitempty"`
 	// AllowMultipleDevices permits participants to join from multiple devices
 	// simultaneously.
-	AllowMultipleDevices bool `json:"allow_multiple_devices"`
+	AllowMultipleDevices bool `json:"allow_multiple_devices,omitempty"`
 	// AlternativeHosts is a comma-separated list of alternative host email
 	// addresses or user IDs.
-	AlternativeHosts string `json:"alternative_hosts"`
+	AlternativeHosts string `json:"alternative_hosts,omitempty"`
 	// AlternativeHostsEmailNotification controls whether alternative hosts receive
 	// an email notification when they are assigned.
-	AlternativeHostsEmailNotification bool `json:"alternative_hosts_email_notification"`
+	AlternativeHostsEmailNotification bool `json:"alternative_hosts_email_notification,omitempty"`
 	// AlternativeHostUpdatePolls allows alternative hosts to add or edit polls.
-	AlternativeHostUpdatePolls bool `json:"alternative_host_update_polls"`
+	AlternativeHostUpdatePolls bool `json:"alternative_host_update_polls,omitempty"`
 	// AlternativeHostManageMeetingSummary allows alternative hosts to manage AI
 	// meeting summaries.
-	AlternativeHostManageMeetingSummary bool `json:"alternative_host_manage_meeting_summary"`
+	AlternativeHostManageMeetingSummary bool `json:"alternative_host_manage_meeting_summary,omitempty"`
 	// AlternativeHostManageCloudRecording allows alternative hosts to manage cloud
 	// recordings.
-	AlternativeHostManageCloudRecording bool `json:"alternative_host_manage_cloud_recording"`
+	AlternativeHostManageCloudRecording bool `json:"alternative_host_manage_cloud_recording,omitempty"`
 	// ApprovalType controls registration approval (0 = automatic, 1 = manual,
 	// 2 = no registration required).
-	ApprovalType int `json:"approval_type"`
+	ApprovalType int `json:"approval_type,omitempty"`
 	// ApprovedOrDeniedCountriesOrRegions restricts meeting access by country or
 	// region.
-	ApprovedOrDeniedCountriesOrRegions MeetingApprovedOrDeniedCountriesOrRegions `json:"approved_or_denied_countries_or_regions"`
+	ApprovedOrDeniedCountriesOrRegions *MeetingApprovedOrDeniedCountriesOrRegions `json:"approved_or_denied_countries_or_regions,omitempty"`
 	// Audio specifies the audio connection options ("both", "telephony", "voip",
 	// "thirdParty").
-	Audio string `json:"audio"`
+	Audio string `json:"audio,omitempty"`
 	// AudioConferenceInfo contains third-party audio conference details.
-	AudioConferenceInfo string `json:"audio_conference_info"`
+	AudioConferenceInfo string `json:"audio_conference_info,omitempty"`
 	// AuthenticationDomains is a comma-separated list of email domains allowed to
 	// join when authentication is required.
-	AuthenticationDomains string `json:"authentication_domains"`
+	AuthenticationDomains string `json:"authentication_domains,omitempty"`
 	// AuthenticationException lists participants who are exempt from the meeting's
 	// authentication requirement.
-	AuthenticationException []MeetingAuthenticationException `json:"authentication_exception"`
+	AuthenticationException []MeetingAuthenticationException `json:"authentication_exception,omitempty"`
 	// AuthenticationName is the display name of the authentication profile in use.
-	AuthenticationName string `json:"authentication_name"`
+	AuthenticationName string `json:"authentication_name,omitempty"`
 	// AuthenticationOption is the ID of the authentication profile to apply.
-	AuthenticationOption string `json:"authentication_option"`
+	AuthenticationOption string `json:"authentication_option,omitempty"`
 	// AutoRecording controls automatic cloud recording ("local", "cloud", "none").
-	AutoRecording string `json:"auto_recording"`
+	AutoRecording string `json:"auto_recording,omitempty"`
 	// AutoAddRecordingToVideoManagement controls automatic addition of recordings
 	// to Zoom Video Management channels.
-	AutoAddRecordingToVideoManagement AutoAddRecordingToVideoManagement `json:"auto_add_recording_to_video_management"`
+	AutoAddRecordingToVideoManagement *AutoAddRecordingToVideoManagement `json:"auto_add_recording_to_video_management,omitempty"`
 	// BreakoutRoom configures breakout rooms for the meeting.
-	BreakoutRoom BreakoutRoom `json:"breakout_room"`
+	BreakoutRoom *BreakoutRoom `json:"breakout_room,omitempty"`
 	// CalendarType specifies the calendar integration type (1 = Zoom, 2 = Google,
 	// 3 = Exchange).
-	CalendarType int `json:"calendar_type"`
+	CalendarType int `json:"calendar_type,omitempty"`
 	// CloseRegistration closes registration after the meeting start time.
-	CloseRegistration bool `json:"close_registration"`
+	CloseRegistration bool `json:"close_registration,omitempty"`
 	// ContactEmail is the host's contact email shown on the registration page.
-	ContactEmail string `json:"contact_email"`
+	ContactEmail string `json:"contact_email,omitempty"`
 	// ContactName is the host's contact name shown on the registration page.
-	ContactName string `json:"contact_name"`
+	ContactName string `json:"contact_name,omitempty"`
 	// CustomKeys contains up to ten custom key-value pairs for the meeting.
-	CustomKeys []CustomKey `json:"custom_keys"`
+	CustomKeys []CustomKey `json:"custom_keys,omitempty"`
 	// EmailNotification controls whether email notifications are sent to
 	// registrants and attendees.
-	EmailNotification bool `json:"email_notification"`
+	EmailNotification bool `json:"email_notification,omitempty"`
 	// EncryptionType specifies the end-to-end encryption type.
-	EncryptionType string `json:"encryption_type"`
+	EncryptionType string `json:"encryption_type,omitempty"`
 	// FocusMode enables focus mode at the start of the meeting.
-	FocusMode bool `json:"focus_mode"`
+	FocusMode bool `json:"focus_mode,omitempty"`
 	// GlobalDialInCountries lists country codes for which global dial-in numbers
 	// are provided.
-	GlobalDialInCountries []string `json:"global_dial_in_countries"`
+	GlobalDialInCountries []string `json:"global_dial_in_countries,omitempty"`
 	// GlobalDialInNumbers lists the PSTN dial-in numbers available for the
 	// meeting.
-	GlobalDialInNumbers []GlobalDialInNumber `json:"global_dial_in_numbers"`
+	GlobalDialInNumbers []GlobalDialInNumber `json:"global_dial_in_numbers,omitempty"`
 	// HostVideo starts the meeting with the host's video on.
-	HostVideo bool `json:"host_video"`
+	HostVideo bool `json:"host_video,omitempty"`
 	// JbhTime is the number of minutes before the start time that participants
 	// can join before the host (join before host).
-	JbhTime int `json:"jbh_time"`
+	JbhTime int `json:"jbh_time,omitempty"`
 	// JoinBeforeHost allows participants to join before the host arrives.
-	JoinBeforeHost bool `json:"join_before_host"`
+	JoinBeforeHost bool `json:"join_before_host,omitempty"`
 	// QuestionAndAnswer configures the Q&A feature for the meeting.
-	QuestionAndAnswer QuestionAndAnswer `json:"question_and_answer"`
+	QuestionAndAnswer *QuestionAndAnswer `json:"question_and_answer,omitempty"`
 	// LanguageInterpretation configures language interpretation channels.
-	LanguageInterpretation LanguageInterpretation `json:"language_interpretation"`
+	LanguageInterpretation *LanguageInterpretation `json:"language_interpretation,omitempty"`
 	// SignLanguageInterpretation configures sign language interpretation.
-	SignLanguageInterpretation LanguageInterpretation `json:"sign_language_interpretation"`
+	SignLanguageInterpretation *LanguageInterpretation `json:"sign_language_interpretation,omitempty"`
 	// MeetingAuthentication requires authenticated sign-in to join the meeting.
-	MeetingAuthentication bool `json:"meeting_authentication"`
+	MeetingAuthentication bool `json:"meeting_authentication,omitempty"`
 	// MuteUponEntry mutes all participants when they join the meeting.
-	MuteUponEntry bool `json:"mute_upon_entry"`
+	MuteUponEntry bool `json:"mute_upon_entry,omitempty"`
 	// ParticipantVideo starts participants' video when they join.
-	ParticipantVideo bool `json:"participant_video"`
+	ParticipantVideo bool `json:"participant_video,omitempty"`
 	// PrivateMeeting hides the meeting from public search results.
-	PrivateMeeting bool `json:"private_meeting"`
+	PrivateMeeting bool `json:"private_meeting,omitempty"`
 	// RegistrantsConfirmationEmail sends a confirmation email to registrants.
-	RegistrantsConfirmationEmail bool `json:"registrants_confirmation_email"`
+	RegistrantsConfirmationEmail bool `json:"registrants_confirmation_email,omitempty"`
 	// RegistrantsEmailNotification sends an email to registrants before the meeting.
-	RegistrantsEmailNotification bool `json:"registrants_email_notification"`
+	RegistrantsEmailNotification bool `json:"registrants_email_notification,omitempty"`
 	// RegistrationType controls registration for recurring meetings (1 = register
 	// once for all occurrences, 2 = register for each occurrence).
-	RegistrationType int `json:"registration_type"`
+	RegistrationType int `json:"registration_type,omitempty"`
 	// ShowShareButton shows the social share button in the Zoom client for this
 	// meeting.
-	ShowShareButton bool `json:"show_share_button"`
+	ShowShareButton bool `json:"show_share_button,omitempty"`
 	// ShowJoinInfo shows the join information panel during the meeting.
-	ShowJoinInfo bool `json:"show_join_info"`
+	ShowJoinInfo bool `json:"show_join_info,omitempty"`
 	// UsePmi indicates whether the host's Personal Meeting ID is used instead of a
 	// generated meeting ID.
-	UsePmi bool `json:"use_pmi"`
+	UsePmi bool `json:"use_pmi,omitempty"`
 	// WaitingRoom enables the waiting room so the host can admit participants
 	// individually.
-	WaitingRoom bool `json:"waiting_room"`
+	WaitingRoom bool `json:"waiting_room,omitempty"`
 	// WaitingRoomOptions configures waiting room behaviour.
-	WaitingRoomOptions WaitingRoomOptions `json:"waiting_room_options"`
+	WaitingRoomOptions *WaitingRoomOptions `json:"waiting_room_options,omitempty"`
 	// Watermark adds a watermark to shared screens and participant video.
-	Watermark bool `json:"watermark"`
+	Watermark bool `json:"watermark,omitempty"`
 	// HostSaveVideoOrder allows the host to save the participant video order.
-	HostSaveVideoOrder bool `json:"host_save_video_order"`
+	HostSaveVideoOrder bool `json:"host_save_video_order,omitempty"`
 	// InternalMeeting restricts the meeting to users within the same account.
-	InternalMeeting bool `json:"internal_meeting"`
+	InternalMeeting bool `json:"internal_meeting,omitempty"`
 	// MeetingInvitees lists specific participants to invite to the meeting.
-	MeetingInvitees []MeetingInvitee `json:"meeting_invitees"`
+	MeetingInvitees []MeetingInvitee `json:"meeting_invitees,omitempty"`
 	// ContinuousMeetingChat configures the persistent chat channel attached to the
 	// meeting.
-	ContinuousMeetingChat ContinuousMeetingChat `json:"continuous_meeting_chat"`
+	ContinuousMeetingChat *ContinuousMeetingChat `json:"continuous_meeting_chat,omitempty"`
 	// ParticipantFocusedMeeting enables participant-focused meeting mode.
-	ParticipantFocusedMeeting bool `json:"participant_focused_meeting"`
+	ParticipantFocusedMeeting bool `json:"participant_focused_meeting,omitempty"`
 	// PushChangeToCalendar pushes meeting changes to the host's calendar.
-	PushChangeToCalendar bool `json:"push_change_to_calendar"`
+	PushChangeToCalendar bool `json:"push_change_to_calendar,omitempty"`
 	// Resources lists resources (e.g. Zoom Rooms) associated with the meeting.
-	Resources []Resource `json:"resources"`
+	Resources []Resource `json:"resources,omitempty"`
 	// AutoStartMeetingSummary automatically starts an AI meeting summary.
-	AutoStartMeetingSummary bool `json:"auto_start_meeting_summary"`
+	AutoStartMeetingSummary bool `json:"auto_start_meeting_summary,omitempty"`
 	// WhoWillReceiveSummary controls who receives the AI-generated meeting summary.
-	WhoWillReceiveSummary int `json:"who_will_receive_summary"`
+	WhoWillReceiveSummary int `json:"who_will_receive_summary,omitempty"`
 	// AutoStartAiCompanionQuestions automatically starts AI Companion questions.
-	AutoStartAiCompanionQuestions bool `json:"auto_start_ai_companion_questions"`
+	AutoStartAiCompanionQuestions bool `json:"auto_start_ai_companion_questions,omitempty"`
 	// WhoCanAskQuestions controls who can submit questions to AI Companion.
-	WhoCanAskQuestions int `json:"who_can_ask_questions"`
+	WhoCanAskQuestions int `json:"who_can_ask_questions,omitempty"`
 	// SummaryTemplateID is the ID of the summary template to use.
-	SummaryTemplateID string `json:"summary_template_id"`
+	SummaryTemplateID string `json:"summary_template_id,omitempty"`
 	// DeviceTesting enables device testing before the meeting starts.
-	DeviceTesting bool `json:"device_testing"`
+	DeviceTesting bool `json:"device_testing,omitempty"`
 	// RequestPermissionToUnmuteParticipants requires host approval before a
 	// participant can unmute themselves.
-	RequestPermissionToUnmuteParticipants bool `json:"request_permission_to_unmute_participants"`
+	RequestPermissionToUnmuteParticipants bool `json:"request_permission_to_unmute_participants,omitempty"`
 	// AllowHostControlParticipantMuteState allows the host to control whether
 	// participants can unmute themselves.
-	AllowHostControlParticipantMuteState bool `json:"allow_host_control_participant_mute_state"`
+	AllowHostControlParticipantMuteState bool `json:"allow_host_control_participant_mute_state,omitempty"`
 	// DisableParticipantVideo prevents participants from enabling their cameras.
-	DisableParticipantVideo bool `json:"disable_participant_video"`
+	DisableParticipantVideo bool `json:"disable_participant_video,omitempty"`
 	// EmailInAttendeeReport includes email addresses in the attendee report.
-	EmailInAttendeeReport bool `json:"email_in_attendee_report"`
+	EmailInAttendeeReport bool `json:"email_in_attendee_report,omitempty"`
 }
 
 // MeetingTrackingField represents a custom tracking key-value pair attached to
