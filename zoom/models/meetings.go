@@ -130,7 +130,7 @@ type MeetingSettings struct {
 	AlternativeHostManageCloudRecording bool `json:"alternative_host_manage_cloud_recording,omitempty"`
 	// ApprovalType controls registration approval (0 = automatic, 1 = manual,
 	// 2 = no registration required).
-	ApprovalType int `json:"approval_type,omitempty"`
+	ApprovalType int `json:"approval_type"`
 	// ApprovedOrDeniedCountriesOrRegions restricts meeting access by country or
 	// region.
 	ApprovedOrDeniedCountriesOrRegions *MeetingApprovedOrDeniedCountriesOrRegions `json:"approved_or_denied_countries_or_regions,omitempty"`
