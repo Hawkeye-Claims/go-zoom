@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Hawkeye-Claims/go-zoom/compare/v1.0.0...v1.1.0) (2026-06-16)
+
+
+### Features
+
+* **server:** expose webhook handler and ServeHTTP ([7f44d31](https://github.com/Hawkeye-Claims/go-zoom/commit/7f44d31c4e402e873ff138721b7a955548bad26b))
+
 ## 1.0.0 (2026-05-12)
 
 
