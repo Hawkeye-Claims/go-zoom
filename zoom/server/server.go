@@ -160,6 +160,18 @@ func (s *WebhookServer) Start() error {
 	return http.ListenAndServe(s.listenAddr, s.mux)
 }
 
+// Handler returns the underlying http.Handler for this WebhookServer, which can
+// be used to integrate with an existing HTTP server instead of using Start.
+func (s *WebhookServer) Handler() http.Handler {
+	return s.mux
+}
+
+// ServeHTTP implements the http.Handler interface for WebhookServer, allowing it
+// to be used directly as an HTTP handler. It delegates to the internal ServeMux.
+func (s *WebhookServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.mux.ServeHTTP(w, r)
+}
+
 // handleValidateToken handles the Zoom "endpoint.url_validation" challenge by
 // computing the HMAC-SHA256 of the plain token and writing the expected JSON
 // response back to Zoom.
