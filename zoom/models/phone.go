@@ -485,6 +485,8 @@ type CallRecording struct {
 	Direction string `json:"direction,omitempty"`
 	// DownloadURL is the URL from which the recording file can be downloaded.
 	DownloadURL string `json:"download_url,omitempty"`
+	// FileURL is the URL from which the recording can be served from.
+	FileURL string `json:"file_url,omitempty"`
 	// Duration is the duration of the recording in seconds.
 	Duration int `json:"duration"`
 	// EndTime is the time the recording ended.
