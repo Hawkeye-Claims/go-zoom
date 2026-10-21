@@ -23,6 +23,8 @@ type PhoneService struct {
 	Recordings *PhoneRecordingsService
 	// Users provides access to Zoom Phone user profile operations.
 	Users *PhoneUsersService
+	// Voicemails provides read-only owner voicemail and transcription operations.
+	Voicemails *PhoneVoicemailsService
 }
 
 // NewPhoneService initialises all Zoom Phone sub-services and attaches them to
@@ -33,11 +35,14 @@ func NewPhoneService(client *Client) {
 	client.Phone.Settings = &PhoneSettingsService{client: client}
 	client.Phone.Recordings = &PhoneRecordingsService{client: client}
 	client.Phone.Users = &PhoneUsersService{client: client}
+	client.Phone.Voicemails = &PhoneVoicemailsService{client: client}
 }
 
 // PhoneCallHistoryServicer is the interface implemented by
 // PhoneCallHistoryService. It declares the operations available for
 // retrieving and managing call history records via the Zoom Phone API.
+// ListUserPage is intentionally exposed through PhoneUserCallHistoryPager
+// instead, preserving existing implementations of this interface.
 type PhoneCallHistoryServicer interface {
 	// Get retrieves call history records. Provide WithPhoneCallHistoryUUID to
 	// fetch a specific record, WithUserIdForPhoneCallHistory to fetch records
@@ -80,9 +85,10 @@ type phoneCallHistoryGetOptions struct {
 // PhoneCallHistoryQueryParameters holds optional query parameters for
 // filtering call history results.
 type PhoneCallHistoryQueryParameters struct {
-	// From is the start of the date range (YYYY-MM-DD) for the query.
+	// From is the start date or UTC second-resolution timestamp for the query.
+	// Zoom permits one month per query within the last six months.
 	From string `url:"from,omitempty"`
-	// To is the end of the date range (YYYY-MM-DD) for the query.
+	// To is the end of the range, in the same format as From.
 	To string `url:"to,omitempty"`
 	// Keyword filters results by a search keyword (e.g. phone number or name).
 	Keyword string `url:"keyword,omitempty"`
@@ -97,7 +103,7 @@ type PhoneCallHistoryQueryParameters struct {
 	// ExtensionTypes filters results by the type of extension involved.
 	ExtensionTypes []enums.ExtensionType `url:"extension_types,omitempty"`
 	// CallResult filters results by the call outcome.
-	CallResult []enums.CallResult `url:"call_result,omitempty"`
+	CallResult []enums.CallResult `url:"call_results,omitempty"`
 	// GroupIDs filters results to calls associated with the given group IDs.
 	GroupIDs []string `url:"group_ids,omitempty"`
 	// SiteIDs filters results to calls associated with the given site IDs.
@@ -177,41 +183,29 @@ func (p *PhoneCallHistoryService) Get(ctx context.Context, opts ...PhoneCallHist
 	var callHistory []*models.CallHistory
 
 	if options.userId != "" {
-		type userResponse struct {
-			*PaginationResponse
-
-			CallLogs []*models.CallHistory `json:"call_logs"`
-		}
-		endpoint := fmt.Sprintf("/phone/users/%s/call_history", url.PathEscape(options.userId))
-
-		queryResponse := &userResponse{}
-		res, err := p.client.request(ctx, http.MethodGet, endpoint, options.phoneCallHistoryQueryParameters, nil, queryResponse)
-		if err != nil {
-			return nil, res, fmt.Errorf("Error making request: %w", err)
-		}
-
-		callHistory = append(callHistory, queryResponse.CallLogs...)
-
-		type userCallHistoryPageQuery struct {
-			*PhoneCallHistoryQueryParameters
-			*PaginationOptions
-		}
-		for queryResponse.NextPageToken != "" {
-			nextPageToken := queryResponse.NextPageToken
-			pageQuery := &userCallHistoryPageQuery{
-				PhoneCallHistoryQueryParameters: options.phoneCallHistoryQueryParameters,
-				PaginationOptions: &PaginationOptions{
-					NextPageToken: &nextPageToken,
-				},
-			}
-			res, err = p.client.request(ctx, http.MethodGet, endpoint, pageQuery, nil, queryResponse)
+		pagination := &PaginationOptions{}
+		seen := make(map[string]bool)
+		for {
+			page, res, err := p.ListUserPage(ctx, options.userId, options.phoneCallHistoryQueryParameters, pagination)
 			if err != nil {
-				return nil, res, fmt.Errorf("Error making request: %w", err)
+				return nil, res, err
 			}
-			callHistory = append(callHistory, queryResponse.CallLogs...)
+			// These arrays are alternate representations, not disjoint records.
+			records := page.CallElements
+			if records == nil {
+				records = page.CallLogs
+			}
+			callHistory = append(callHistory, records...)
+			next := page.NextPageToken
+			if next == "" {
+				return callHistory, res, nil
+			}
+			if seen[next] {
+				return nil, res, fmt.Errorf("repeated call history page token")
+			}
+			seen[next] = true
+			pagination.NextPageToken = &next
 		}
-
-		return callHistory, res, nil
 	}
 
 	endpoint := "/phone/call_history"
@@ -280,7 +274,7 @@ func (p *PhoneCallHistoryService) DeleteUserCallHistory(ctx context.Context, use
 // callElementId.
 func (p *PhoneCallHistoryService) GetCallElement(ctx context.Context, callElementId string) (*models.CallElement, *http.Response, error) {
 	var callElement models.CallElement
-	res, err := p.client.request(ctx, http.MethodGet, fmt.Sprintf("/phone/call_elements/%s", url.PathEscape(callElementId)), nil, nil, &callElement)
+	res, err := p.client.request(ctx, http.MethodGet, fmt.Sprintf("/phone/call_element/%s", url.PathEscape(callElementId)), nil, nil, &callElement)
 	if err != nil {
 		return nil, res, fmt.Errorf("Error making request: %w", err)
 	}

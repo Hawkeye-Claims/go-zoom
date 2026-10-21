@@ -99,7 +99,7 @@ c, err := client.NewClient(
 )
 ```
 
-Tokens are fetched and cached automatically. They are refreshed on expiry or when a `401` response is received.
+Tokens are fetched and cached automatically. Expired S2S tokens are reacquired. A resource `401` clears the cached token and returns an error without replaying the request; the next request acquires a new token.
 
 ### Authorization Code OAuth
 
@@ -162,11 +162,97 @@ type TokenMutex interface {
 ```go
 c, err := client.NewClient(...)
 
-// Initialize Phone sub-services (CallHistory, Recordings, Settings, Users)
+// Initialize Phone sub-services (CallHistory, Recordings, Settings, Users, Voicemails)
 client.NewPhoneService(c)
 ```
 
-After calling `NewPhoneService`, the following are available: `c.Phone.CallHistory`, `c.Phone.Recordings`, `c.Phone.Settings`, and `c.Phone.Users`.
+After calling `NewPhoneService`, the following are available: `c.Phone.CallHistory`, `c.Phone.Recordings`, `c.Phone.Settings`, `c.Phone.Users`, and `c.Phone.Voicemails`.
+
+### Owner call history and voicemail reads
+
+The explicit page methods retain Zoom pagination metadata and return one page at
+a time. They use the same client, transport and token store as other services.
+
+```go
+filters := &client.PhoneVoicemailQueryParameters{
+    From: "2026-10-19T00:00:00Z",
+    To:   "2026-10-20T00:00:00Z",
+    Status: "all", // Include read and unread voicemail.
+}
+pagination := &client.PaginationOptions{}
+seen := map[string]bool{}
+for {
+    page, response, err := c.Phone.Voicemails.ListUserPage(ctx, zoomUserID, filters, pagination)
+    if err != nil {
+        // The collection is incomplete. response retains status/headers when available.
+        return err
+    }
+    _ = response // Body already closed; inspect status and headers only.
+    for _, item := range page.VoiceMails {
+        detail, _, err := c.Phone.Voicemails.Get(ctx, item.ID)
+        if err != nil {
+            return err
+        }
+        // Keep metadata even if Transcription is nil, processing or disabled.
+        _ = detail
+    }
+    next := page.NextPageToken
+    if next == "" {
+        break
+    }
+    if seen[next] {
+        return fmt.Errorf("repeated voicemail page token")
+    }
+    seen[next] = true
+    pagination.NextPageToken = &next
+}
+```
+
+`c.Phone.CallHistory.ListUserPage(ctx, zoomUserID, filters, pagination)` takes
+`*client.PhoneCallHistoryQueryParameters` and `*client.PaginationOptions`. It
+returns `*client.PhoneUserCallHistoryPage` with separate `CallElements` and
+`CallLogs` arrays of `*models.CallHistory`, preserving both when Zoom sends both.
+For existing callers, user-scoped `CallHistory.Get` still collects all pages and
+returns modern `call_elements` when that field is present, otherwise `call_logs`.
+It does not concatenate both representations of the same calls. A later-page
+error or repeated token returns an error, not partial success. Account-level
+and UUID lookup contracts are unchanged. `CallResult` now encodes the documented
+`call_results` filter. `GetCallElement` uses `/phone/call_element/{id}`.
+
+`CallHistory` preserves flat result/reason/event, voicemail and element IDs,
+talk/wait times, caller/callee identity and call history UUID. `CallPathID`
+retains the legacy `call_path_id`; decoding a legacy record also populates
+`CallHistoryUUID` from it when `call_history_uuid` is absent.
+
+For an account-level S2S app, request granular scopes:
+
+| Operation | Scope |
+| --- | --- |
+| Phone user lookup by ID or email | `phone:read:user:admin` |
+| Owner call history | `phone:read:list_call_logs:admin` |
+| Owner voicemail list | `phone:read:list_voicemails:admin` |
+| Voicemail detail/transcription | `phone:read:voicemail:admin` |
+
+The [Zoom Phone API reference](https://developers.zoom.us/docs/api/phone/)
+also accepts classic `phone:read:admin` for these operations. App activation,
+admin authorization, Zoom Phone licensing and transcription policy are deployment
+prerequisites. Detail lookup is account-authorized, not owner-filtered; obtain
+voicemail IDs from the intended owner's list rather than accepting arbitrary IDs.
+No recording transcript permission or audio download is needed.
+
+History and voicemail queries accept dates or UTC second-resolution timestamps,
+with matching From/To formats. Zoom limits each query to one month within the
+last six months. Callers must split longer windows, deduplicate overlaps, and
+follow every cursor. Cursors expire after 15 minutes. Page errors, including
+expired cursors, are not end-of-data. Page methods do not retry or automatically
+follow cursors. HTTP errors retain the response status and headers, including
+`Retry-After`, for caller-controlled retry policy. Use contexts with deadlines.
+
+`PhoneVoicemail.Transcription` is optional. Its raw status is retained: 0 means
+unavailable, 1 processing, 2 successful, and 4 disabled. Other values are not
+silently converted to success or discarded. Reads do not mark voicemail read
+or fetch audio. Call result values are also preserved; the SDK does not infer
+missed-call policy from duration or missing answer time.
 
 ### Users — `c.Users`
 

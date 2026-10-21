@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/Hawkeye-Claims/go-zoom/zoom/enums"
@@ -12,7 +13,23 @@ type CallHistory struct {
 	// ID is the unique identifier for the call log entry.
 	ID string `json:"id,omitempty"`
 	// CallHistoryUUID is the UUID of the call history record.
-	CallHistoryUUID string `json:"call_path_id,omitempty"`
+	CallHistoryUUID string `json:"call_history_uuid,omitempty"`
+	// CallPathID retains the legacy call path identifier.
+	CallPathID string `json:"call_path_id,omitempty"`
+	// CallElementID identifies a modern flat owner call element.
+	CallElementID string `json:"call_element_id,omitempty"`
+	// Result is the reported outcome. Unknown Zoom values are preserved.
+	Result enums.CallResult `json:"result,omitempty"`
+	// ResultReason provides detail such as a ring timeout.
+	ResultReason string `json:"result_reason,omitempty"`
+	// Event is the routing event associated with the element.
+	Event enums.EventType `json:"event,omitempty"`
+	// VoicemailID identifies voicemail associated with this element.
+	VoicemailID string `json:"voicemail_id,omitempty"`
+	// TalkTime is connected talk time in seconds.
+	TalkTime int `json:"talk_time"`
+	// WaitTime is waiting time in seconds.
+	WaitTime int `json:"wait_time"`
 	// CallID is the unique identifier for the call.
 	CallID string `json:"call_id,omitempty"`
 	// ConnectType indicates whether the call was internal or external.
@@ -93,6 +110,21 @@ type CallHistory struct {
 	CalleeAccountCode string `json:"callee_account_code,omitempty"`
 	// CallElements lists the raw call elements associated with the call.
 	CallElements []CallElement `json:"call_elements"`
+}
+
+// UnmarshalJSON accepts the current call_history_uuid while retaining the
+// legacy CallHistoryUUID value for callers reading call_path_id responses.
+func (c *CallHistory) UnmarshalJSON(data []byte) error {
+	type plainCallHistory CallHistory
+	var decoded plainCallHistory
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+	if decoded.CallHistoryUUID == "" {
+		decoded.CallHistoryUUID = decoded.CallPathID
+	}
+	*c = CallHistory(decoded)
+	return nil
 }
 
 // CallPath represents a single routing hop within a phone call, capturing the
@@ -232,6 +264,14 @@ type CallPath struct {
 type CallElement struct {
 	// CallElementID is the unique identifier for this call element.
 	CallElementID string `json:"call_element_id,omitempty"`
+	// CallHistoryUUID identifies the parent call history.
+	CallHistoryUUID string `json:"call_history_uuid,omitempty"`
+	// TalkTime is connected talk time in seconds.
+	TalkTime int `json:"talk_time"`
+	// WaitTime is waiting time in seconds.
+	WaitTime int `json:"wait_time"`
+	// Duration is the element's duration in seconds, when returned.
+	Duration int `json:"duration"`
 	// CallID is the unique identifier for the call.
 	CallID string `json:"call_id,omitempty"`
 	// ConnectType indicates whether the call was internal or external.
