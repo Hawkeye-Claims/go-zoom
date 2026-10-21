@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/Hawkeye-Claims/go-zoom/compare/v1.1.0...v1.2.0) (2026-10-21)
+
+
+### Features
+
+* **phone:** add owner voicemail and modern call history reads ([67af4d9](https://github.com/Hawkeye-Claims/go-zoom/commit/67af4d970821c77fc45c749253ae81fe669872ce))
+* **phone:** add owner voicemail and modern call history reads ([66cb16b](https://github.com/Hawkeye-Claims/go-zoom/commit/66cb16bb6b194eb68d31773bc016224785699800))
+
 ## [1.1.0](https://github.com/Hawkeye-Claims/go-zoom/compare/v1.0.0...v1.1.0) (2026-06-16)
 
 
