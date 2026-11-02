@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/Hawkeye-Claims/go-zoom/compare/v1.2.0...v1.2.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* **phone:** preserve voicemail total count presence ([e2c77d1](https://github.com/Hawkeye-Claims/go-zoom/commit/e2c77d136423211196807982b56b66851f033225))
+* **phone:** preserve voicemail total count presence ([d0532e8](https://github.com/Hawkeye-Claims/go-zoom/commit/d0532e8c1ca5ff6cb62ca086d0ef73cc6e4c948a))
+
 ## [1.2.0](https://github.com/Hawkeye-Claims/go-zoom/compare/v1.1.0...v1.2.0) (2026-10-21)
 
 
