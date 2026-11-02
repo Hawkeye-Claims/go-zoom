@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -38,11 +39,32 @@ type PhoneVoicemailQueryParameters struct {
 // PhoneVoicemailPage is one page, not a complete owner mailbox.
 type PhoneVoicemailPage struct {
 	PaginationResponse
+	// TotalRecordsPresent distinguishes a numeric count from an omitted or null
+	// count. TotalRecords alone cannot prove that an omitted collection is empty.
+	TotalRecordsPresent bool `json:"-"`
 	// From and To are the query bounds echoed by Zoom.
 	From string `json:"from"`
 	To   string `json:"to"`
 	// VoiceMails contains only this page's records.
 	VoiceMails []*models.PhoneVoicemail `json:"voice_mails"`
+}
+
+// UnmarshalJSON preserves count presence without changing PaginationResponse.
+func (p *PhoneVoicemailPage) UnmarshalJSON(data []byte) error {
+	type page PhoneVoicemailPage
+	decoded := struct {
+		*page
+		TotalRecords *int `json:"total_records"`
+	}{page: new(page)}
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+	*p = PhoneVoicemailPage(*decoded.page)
+	p.TotalRecordsPresent = decoded.TotalRecords != nil
+	if decoded.TotalRecords != nil {
+		p.TotalRecords = *decoded.TotalRecords
+	}
+	return nil
 }
 
 // ListUserPage reads one page for a user ID or email. It requires
