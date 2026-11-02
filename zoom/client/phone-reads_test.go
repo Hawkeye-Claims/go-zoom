@@ -104,6 +104,44 @@ func TestPhoneVoicemailTranscription(t *testing.T) {
 	}
 }
 
+func TestPhoneVoicemailCountPresence(t *testing.T) {
+	for _, tc := range []struct {
+		name, body string
+		present    bool
+		count      int
+		invalid    bool
+	}{
+		{name: "missing", body: `{}`},
+		{name: "null", body: `{"total_records":null}`},
+		{name: "zero", body: `{"total_records":0}`, present: true},
+		{name: "nonzero", body: `{"total_records":2}`, present: true, count: 2},
+		{name: "string", body: `{"total_records":"0"}`, invalid: true},
+		{name: "fraction", body: `{"total_records":0.5}`, invalid: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c := newPhoneClient(t, func(req *http.Request) (*http.Response, error) {
+				if req.URL.Host == "zoom.us" {
+					return tokenResponse(req), nil
+				}
+				return phoneResponse(req, 200, tc.body), nil
+			})
+			page, _, err := c.Phone.Voicemails.ListUserPage(context.Background(), "owner", nil, nil)
+			if tc.invalid {
+				if err == nil || page != nil {
+					t.Fatal("invalid count accepted")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if page.TotalRecordsPresent != tc.present || page.TotalRecords != tc.count || page.VoiceMails != nil {
+				t.Fatalf("count presence not retained: %+v", page)
+			}
+		})
+	}
+}
+
 func TestPhoneReadErrors(t *testing.T) {
 	for _, status := range []int{400, 401, 403, 404, 429, 500} {
 		t.Run(fmt.Sprint(status), func(t *testing.T) {
